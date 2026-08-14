@@ -4,6 +4,9 @@
 *.env
 !.env.example
 
+# --- Overrides locais do Docker Compose ---
+docker-compose.override.yml
+
 # --- Java / Maven ---
 target/
 !.mvn/wrapper/maven-wrapper.jar

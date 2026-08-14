@@ -3,7 +3,7 @@ spring:
     name: central-chamados
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/central_chamados?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Fortaleza&characterEncoding=UTF-8}
+    url: ${DB_URL:jdbc:mysql://localhost:3307/central_chamados?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Fortaleza&characterEncoding=UTF-8}
     username: ${DB_USERNAME:fadex}
     password: ${DB_PASSWORD:fadex}
 
