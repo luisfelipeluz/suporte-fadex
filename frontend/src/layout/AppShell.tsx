@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { Avatar } from '../components/Badges';
 import { Icone } from '../components/Icone';
 import { useRealtime, type EstadoConexao } from '../realtime/RealtimeContext';
+import { horaDe } from '../utils/formato';
 import { AlertaAltaPrioridade } from './AlertaAltaPrioridade';
 import { CentralNotificacoes } from './CentralNotificacoes';
 
@@ -14,9 +15,23 @@ const CORES_CONEXAO: Record<EstadoConexao, { cor: string; rotulo: string }> = {
   reconectando: { cor: '#f59e0b', rotulo: 'Reconectando…' },
 };
 
+/**
+ * Titulo da tela atual, exibido no cabecalho.
+ *
+ * O detalhe do chamado nao entra no mapa porque o shell nao conhece o titulo
+ * do chamado aberto — quem sabe disso e a propria tela, que ja o mostra.
+ */
+function tituloDaRota(pathname: string, admin: boolean): string {
+  if (pathname.startsWith('/chamados/novo')) return 'Novo chamado';
+  if (/^\/chamados\/\d+/.test(pathname)) return 'Chamado';
+  if (pathname.startsWith('/chamados')) return admin ? 'Chamados' : 'Meus chamados';
+  if (pathname.startsWith('/dashboard')) return 'Visão geral';
+  return 'Central de Chamados';
+}
+
 export function AppShell() {
   const { usuario, admin, sair } = useAuth();
-  const { conexao } = useRealtime();
+  const { conexao, metricas } = useRealtime();
   const navegar = useNavigate();
   const local = useLocation();
 
@@ -31,15 +46,17 @@ export function AppShell() {
 
   if (!usuario) return null;
 
+  const abertos = metricas?.porStatus.ABERTO ?? 0;
+
   const itens = admin
     ? [
-        { para: '/dashboard', rotulo: 'Dashboard' },
-        { para: '/chamados', rotulo: 'Chamados' },
-        { para: '/chamados/novo', rotulo: 'Novo chamado' },
+        { para: '/dashboard', rotulo: 'Dashboard', contador: null },
+        { para: '/chamados', rotulo: 'Chamados', contador: abertos },
+        { para: '/chamados/novo', rotulo: 'Novo chamado', contador: null },
       ]
     : [
-        { para: '/chamados', rotulo: 'Meus chamados' },
-        { para: '/chamados/novo', rotulo: 'Novo chamado' },
+        { para: '/chamados', rotulo: 'Meus chamados', contador: abertos },
+        { para: '/chamados/novo', rotulo: 'Novo chamado', contador: null },
       ];
 
   const conexaoAtual = CORES_CONEXAO[conexao];
@@ -64,26 +81,35 @@ export function AppShell() {
         }}
         className={menuMobile ? 'sidebar sidebar-aberta' : 'sidebar'}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '0 8px 16px',
+            borderBottom: '1px solid #1e293b',
+          }}
+        >
           <span
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
+              width: 28,
+              height: 28,
+              borderRadius: 6,
               background: 'var(--ac)',
               color: '#fff',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
+              fontSize: 13,
             }}
           >
             F
           </span>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>
-            Central de
-            <br />
-            Chamados
+          <span
+            style={{ color: '#fff', fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em' }}
+          >
+            FADEX <span style={{ color: '#94a3b8', fontWeight: 500 }}>Suporte</span>
           </span>
         </div>
 
@@ -97,16 +123,45 @@ export function AppShell() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                padding: '10px 12px',
-                borderRadius: 8,
-                fontSize: 14,
+                padding: '9px 11px',
+                borderRadius: 6,
+                fontSize: 13.5,
                 fontWeight: isActive ? 700 : 500,
                 background: isActive ? 'var(--ac)' : 'transparent',
                 color: isActive ? '#fff' : '#cbd5e1',
                 textDecoration: 'none',
               })}
             >
-              {item.rotulo}
+              {({ isActive }) => (
+                <>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      background: isActive ? '#fff' : '#475569',
+                      flex: 'none',
+                    }}
+                  />
+                  <span style={{ flex: 1 }}>{item.rotulo}</span>
+                  {item.contador != null && item.contador > 0 && (
+                    <span
+                      title={`${item.contador} em aberto`}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: 20,
+                        background: isActive ? 'rgba(255,255,255,.25)' : '#1e293b',
+                        color: isActive ? '#fff' : '#94a3b8',
+                      }}
+                    >
+                      {item.contador}
+                    </span>
+                  )}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -126,8 +181,10 @@ export function AppShell() {
             />
             <span style={{ fontSize: 12, color: '#94a3b8' }}>{conexaoAtual.rotulo}</span>
           </div>
-          <p style={{ margin: '6px 0 0', fontSize: 11, color: '#64748b' }}>
-            Atualização em tempo real
+          <p style={{ margin: '6px 0 0', fontSize: 11, color: '#64748b', lineHeight: 1.45 }}>
+            {metricas
+              ? `Fila sincronizada · última atualização ${horaDe(metricas.atualizadoEm)}`
+              : 'Atualização em tempo real'}
           </p>
         </div>
       </aside>
@@ -146,7 +203,8 @@ export function AppShell() {
         <header
           style={{
             height: 60,
-            background: 'var(--sf)',
+            background: 'rgba(255,255,255,.92)',
+            backdropFilter: 'blur(6px)',
             borderBottom: '1px solid var(--bd)',
             display: 'flex',
             alignItems: 'center',
@@ -166,6 +224,10 @@ export function AppShell() {
           >
             <Icone nome="menu" tamanho={18} />
           </button>
+
+          <h1 style={{ margin: 0, fontSize: 14.5, fontWeight: 700, letterSpacing: '-0.01em' }}>
+            {tituloDaRota(local.pathname, admin)}
+          </h1>
 
           <div style={{ flex: 1 }} />
 
@@ -205,6 +267,7 @@ export function AppShell() {
                   {usuario.papel}
                 </span>
               </span>
+              <Icone nome="chevronBaixo" tamanho={14} cor="var(--mut)" />
             </button>
 
             {menuUsuario && (
