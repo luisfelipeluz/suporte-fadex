@@ -384,7 +384,7 @@
               "mode": "raw",
               "raw": "{\n  \"status\": \"EM_ANDAMENTO\"\n}"
             },
-            "description": "Fluxo sequencial ABERTO → EM_ANDAMENTO → RESOLVIDO → FECHADO. Pular etapas devolve 409.",
+            "description": "Fluxo sequencial nos dois sentidos: ABERTO ↔ EM_ANDAMENTO ↔ RESOLVIDO → FECHADO. O retorno para a etapa anterior registra o evento STATUS_RETROCEDIDO no histórico, com o nome de quem moveu. Pular etapas devolve 409, e chamado FECHADO não reabre.",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/status",
               "host": [

@@ -30,6 +30,7 @@ Solução para o desafio técnico da **FADEX** — vaga de Analista de Desenvolv
 - [Testando a API](#testando-a-api)
 - [Triagem por IA](#triagem-por-ia-como-funciona-e-por-quê)
 - [Detecção de duplicados](#detecção-de-chamados-duplicados)
+- [Fluxo do chamado e quadro Kanban](#fluxo-do-chamado-e-quadro-kanban)
 - [Tempo real](#tempo-real)
 - [Arquitetura](#arquitetura)
 - [Modelo de dados](#modelo-de-dados)
@@ -346,6 +347,46 @@ aos últimos **60 dias**: um chamado de três meses atrás não é duplicata, é
 
 ---
 
+## Fluxo do chamado e quadro Kanban
+
+```
+ABERTO  ⇄  EM_ANDAMENTO  ⇄  RESOLVIDO  →  FECHADO
+```
+
+O chamado anda **uma etapa por vez, nos dois sentidos**. O retorno existe porque "resolvido" é
+uma afirmação que pode se provar falsa: quando o atendimento não resolveu o que foi pedido, o
+chamado volta para `EM_ANDAMENTO` em vez de ser fechado ou reaberto como duplicata.
+
+Duas fronteiras continuam fechadas, e é o que impede o retorno de virar um "desfazer" geral:
+
+- **de `FECHADO` não há volta** — seria exatamente a reabertura que a regra proíbe (`409`);
+- **não se pula etapa no retorno** — `RESOLVIDO → ABERTO` é recusado como qualquer outro salto.
+
+### O log de cada chamado
+
+Toda movimentação vira um evento em `evento_historico`, com **autor, tipo, descrição e instante**.
+É esse registro que o detalhe do chamado exibe como timeline, e as duas direções são eventos
+distintos — um retorno não se confunde com mais um avanço na leitura do histórico:
+
+| Direção | Tipo do evento | Descrição registrada |
+|---|---|---|
+| avanço | `STATUS_ALTERADO` | `Ana Souza moveu o chamado para Resolvido` |
+| retorno | `STATUS_RETROCEDIDO` | `Ana Souza retornou o chamado de Resolvido para Em andamento` |
+
+O retorno ainda recebe a etiqueta `RETORNO` e cor própria na timeline. O nome de quem moveu entra
+na descrição **e** no campo `autor` do evento: quem audita não depende do texto para saber quem
+fez a mudança.
+
+### O quadro
+
+O dashboard abre um **Kanban em modal** (botão *Kanban*, no topo à direita) com uma coluna por
+etapa. Arrastar um cartão chama o mesmo `PATCH /api/chamados/{id}/status` da tela de detalhe — o
+quadro opera o fluxo, não tem regras próprias. Durante o arraste, só as colunas vizinhas ficam
+ativas: a regra do domínio aparece na interface em vez de ser descoberta por `409`. Cada cartão
+também tem os botões `←` e `→`, porque drag-and-drop nativo não funciona em toque nem por teclado.
+
+---
+
 ## Tempo real
 
 **Server-Sent Events** (`GET /api/eventos/stream`). O tráfego é unidirecional (servidor → painel),
@@ -395,7 +436,7 @@ frontend/src/
 ├── api/          client (JWT, erros) · servicos · tipos     ← única camada que fala com a rede
 ├── auth/         AuthContext
 ├── realtime/     RealtimeContext (SSE)
-├── components/   design system (badges, estados, toasts, modal)
+├── components/   design system (badges, estados, toasts, modal, quadro Kanban)
 ├── layout/       AppShell · CentralNotificacoes · AlertaAltaPrioridade
 └── pages/        Login · Dashboard · ListaChamados · NovoChamado · DetalheChamado
 ```
@@ -436,7 +477,7 @@ Todas aplicadas **no backend**, não apenas escondendo botões na interface:
 | Título e descrição obrigatórios | `400` com os campos inválidos |
 | E-mail único (verificação + constraint no banco) | `409` |
 | **Chamado FECHADO não pode ser reaberto** | `409` |
-| Fluxo sequencial ABERTO → EM_ANDAMENTO → RESOLVIDO → FECHADO | `409` ao pular etapas |
+| Fluxo sequencial ABERTO ↔ EM_ANDAMENTO ↔ RESOLVIDO → FECHADO | `409` ao pular etapas, em qualquer direção |
 | SOLICITANTE não acessa chamado de terceiro | `403` |
 | Só ADMIN altera status, atribui responsável e revisa a IA | `403` |
 | Responsável precisa ser da equipe de suporte | `409` |
@@ -453,17 +494,17 @@ Toda resposta de erro usa o mesmo formato `ApiError`
 cd backend && mvn test
 ```
 
-**115 testes**, rodando em **H2 no modo MySQL** — sem Docker e sem MySQL instalado. A suíte executa
+**121 testes**, rodando em **H2 no modo MySQL** — sem Docker e sem MySQL instalado. A suíte executa
 as **mesmas migrations Flyway** do ambiente real, com `ddl-auto=validate`: qualquer divergência
 entre uma coluna e o campo JPA correspondente derruba o build.
 
 | Suíte | Cobre |
 |---|---|
 | `AuthControllerTest` | cadastro, hash BCrypt, login, e-mail duplicado, token inválido/forjado, 401 |
-| `ChamadoControllerTest` | CRUD, filtros, paginação, permissões, fluxo de status, reabertura, cancelamento, revisão da IA, comentários, detecção de duplicados |
+| `ChamadoControllerTest` | CRUD, filtros, paginação, permissões, fluxo de status nos dois sentidos, reabertura, cancelamento, revisão da IA, comentários, detecção de duplicados |
 | `HeuristicTriageProviderTest` | categoria, prioridade, incidente de segurança, confiança, determinismo, acentuação, texto vazio |
 | `MetricasETempoRealTest` | indicadores, escopo por papel, publicação de eventos, alerta ALTA, autenticação do SSE |
-| `StatusChamadoTest` | fluxo sequencial e estados terminais |
+| `StatusChamadoTest` | avanço e retorno de etapa, salto proibido, estados terminais |
 | `SimilaridadeTextualTest` | pontuação, simetria, normalização, stopwords, termos em comum |
 | `SeedDemonstracaoTest` | valida a carga de demonstração em banco isolado |
 
