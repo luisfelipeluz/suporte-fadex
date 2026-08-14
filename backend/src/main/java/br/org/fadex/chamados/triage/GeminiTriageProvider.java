@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,10 @@ public class GeminiTriageProvider implements TriageProvider {
               "justificativa": uma frase curta, em português, explicando a decisão
 
             Critérios de prioridade:
-              ALTA  - indisponibilidade, bloqueio do trabalho ou impacto sobre várias pessoas
+              ALTA  - indisponibilidade, bloqueio do trabalho ou impacto sobre várias pessoas.
+                      Também é ALTA qualquer suspeita de incidente de segurança (invasão,
+                      vazamento de dados, ransomware, phishing, acesso indevido), mesmo que
+                      ninguém esteja impedido de trabalhar.
               MEDIA - degradação com contorno possível
               BAIXA - solicitação de rotina, sem urgência
 
@@ -103,15 +107,28 @@ public class GeminiTriageProvider implements TriageProvider {
                         "generationConfig",
                         Map.of("responseMimeType", "application/json", "temperature", 0.1));
 
-        String url = URL_BASE + configuracao.model() + ":generateContent?key=" + configuracao.apiKey();
+        String url = URL_BASE + configuracao.model() + ":generateContent";
 
         String resposta =
                 restClient
                         .post()
                         .uri(url)
+                        // A chave vai no cabecalho, e nao na query string: URL completa
+                        // costuma acabar em log de acesso, historico e mensagem de erro.
+                        .header("x-goog-api-key", configuracao.apiKey())
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(corpo)
                         .retrieve()
+                        .onStatus(
+                                HttpStatusCode::isError,
+                                (requisicaoHttp, respostaHttp) -> {
+                                    throw new IllegalStateException(
+                                            "Gemini respondeu "
+                                                    + respostaHttp.getStatusCode()
+                                                    + " para o modelo '"
+                                                    + configuracao.model()
+                                                    + "'.");
+                                })
                         .body(String.class);
 
         return interpretar(resposta);
