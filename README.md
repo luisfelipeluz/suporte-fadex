@@ -53,27 +53,32 @@ cd suporte-fadex
 docker compose up --build
 ```
 
+Não é preciso criar `.env` nem instalar Java, Node ou MySQL: só Docker.
+
 | Recurso | Endereço |
 |---|---|
 | Aplicação | <http://localhost> |
-| API | <http://localhost:8080> |
+| API | <http://localhost/api> |
 | Swagger UI | <http://localhost/swagger-ui.html> |
 
 > **Primeira execução:** o MySQL inicializa o data dir do zero, o que pode levar **2 a 4 minutos**
-> (bem mais em Docker sobre WSL2). O `healthcheck` do compose segura o backend até o banco
-> realmente aceitar conexões — é só aguardar. As execuções seguintes sobem em segundos.
+> (bem mais em Docker sobre WSL2). Os `healthcheck` do compose encadeiam a subida — o backend só
+> parte quando o banco aceita conexões, e a interface só é publicada quando a API responde. Quando
+> o log parar, está pronto. As execuções seguintes sobem em segundos.
 
-> A porta do MySQL **não** é publicada no host de propósito: muitas máquinas já têm um MySQL
-> na 3306, e publicá-la faria o `docker compose up` falhar nesses casos. Para inspecionar o
-> banco por fora, descomente o bloco `ports` do serviço `mysql` no `docker-compose.yml`.
+> **A stack publica uma única porta no host: a 80.** MySQL e backend conversam pela rede interna do
+> compose, e o nginx do frontend serve a API e o Swagger na mesma origem. Isso é proposital: cada
+> porta publicada a mais é uma chance de o `docker compose up` falhar numa máquina que já usa a
+> 3306 ou a 8080. Para expor MySQL ou backend no host, descomente o bloco `ports` do serviço
+> correspondente no `docker-compose.yml`.
 
 ### Opção 2 — Execução local
 
 **Pré-requisitos:** JDK 21, Maven 3.9+, Node 20+, e um MySQL 8 acessível.
 
 ```bash
-# 1. Banco do projeto, publicado no host em localhost:3307 pelo override local
-docker compose up -d mysql
+# 1. Só o banco em container, publicado no host em localhost:3307
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d mysql
 
 # 2. Backend  → http://localhost:8080
 cd backend
@@ -88,6 +93,20 @@ npm run dev
 O servidor de desenvolvimento do Vite faz proxy de `/api` para `localhost:8080`, então não há
 CORS no fluxo do dia a dia.
 
+> **Por que o `-f` duplicado.** A stack completa publica só a porta 80; rodando o backend fora do
+> Docker, o banco precisa estar alcançável no host. Em vez de publicar a porta para todo mundo, o
+> [`docker-compose.local.yml`](docker-compose.local.yml) adiciona **apenas** esse mapeamento, e só
+> para quem pede. A porta padrão é a 3307 (`MYSQL_PORT` no `.env` muda), porque a 3306 do host
+> costuma já estar ocupada por um MySQL instalado localmente.
+
+> **O `.env` não vale aqui.** Ler `.env` é comportamento do Docker Compose, não do Spring nem do
+> Vite — `mvn spring-boot:run` ignora o arquivo por completo. Nesta opção, o backend usa os padrões
+> do `application.yml` (que já apontam para `localhost:3307`); para mudar qualquer coisa —
+> credenciais, provider de IA — exporte no ambiente do processo:
+> ```powershell
+> $env:TRIAGE_PROVIDER='gemini'; $env:GEMINI_API_KEY='sua-chave'; mvn spring-boot:run
+> ```
+
 ### Variáveis de ambiente
 
 Todas têm padrão de desenvolvimento e o projeto sobe sem configuração. Para personalizar:
@@ -96,8 +115,61 @@ Todas têm padrão de desenvolvimento e o projeto sobe sem configuração. Para 
 cp .env.example .env
 ```
 
-O `.env` está no `.gitignore`; o `.env.example` lista apenas as chaves esperadas, sem valores
-secretos reais.
+O `.env` está no `.gitignore`. Os valores do `.env.example` são os mesmos padrões já embutidos no
+`docker-compose.yml`, então copiá-lo sem editar não altera o comportamento da stack.
+
+### Problemas comuns
+
+<details>
+<summary><strong>A porta 80 já está em uso</strong></summary>
+
+Mensagem do tipo `bind: address already in use` ao subir o frontend — normalmente IIS, Apache ou
+Skype segurando a 80. Publique a interface em outra porta:
+
+```bash
+echo "FRONTEND_PORT_PUBLICO=8081" >> .env
+docker compose up --build     # aplicação em http://localhost:8081
+```
+</details>
+
+<details>
+<summary><strong>500 Internal Server Error ao buscar a imagem (Docker Desktop)</strong></summary>
+
+`unable to get image 'suporte-fadex-frontend': request returned 500 Internal Server Error` — o
+armazenamento de imagens do Docker Desktop ficou inconsistente. Não vem do projeto; o caminho
+mais curto é reiniciar o engine de verdade:
+
+```bash
+docker compose down --remove-orphans
+# sair do Docker Desktop pela bandeja (Quit) e, no Windows: wsl --shutdown
+# reabrir o Docker Desktop e esperar "Engine running"
+docker compose up --build
+```
+
+Se persistir, apague a imagem quebrada e reconstrua:
+`docker image rm -f suporte-fadex-frontend && docker compose build --no-cache frontend`.
+</details>
+
+<details>
+<summary><strong>O backend não autentica no MySQL</strong></summary>
+
+Usuário e senha do MySQL só são gravados quando o volume é criado, na primeira subida. Se você
+mudou `MYSQL_USER`/`MYSQL_PASSWORD` depois disso, recrie o volume — o banco é recriado pelas
+migrations e pelo seed:
+
+```bash
+docker compose down -v && docker compose up --build
+```
+</details>
+
+<details>
+<summary><strong>Começar do zero</strong></summary>
+
+```bash
+docker compose down -v --remove-orphans
+docker compose up --build
+```
+</details>
 
 ---
 
@@ -161,39 +233,39 @@ as demais requisições já o utilizam.
 
 ```bash
 # 1. Login como SOLICITANTE (guarda o token)
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+TOKEN=$(curl -s -X POST http://localhost/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"joao.pereira@fadex.org.br","senha":"suporte123"}' \
   | grep -o '"token":"[^"]*' | cut -d'"' -f4)
 
 # 2. Abrir um chamado — sem informar categoria nem prioridade
-curl -s -X POST http://localhost:8080/api/chamados \
+curl -s -X POST http://localhost/api/chamados \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"titulo":"Servidor de arquivos inacessível",
        "descricao":"O compartilhamento de rede não abre em nenhuma máquina do setor e ninguém consegue trabalhar."}'
 # → categoria REDE, prioridade ALTA, origem IA, com a justificativa da decisão
 
 # 3. Listar com filtros
-curl -s "http://localhost:8080/api/chamados?status=ABERTO&prioridade=ALTA" \
+curl -s "http://localhost/api/chamados?status=ABERTO&prioridade=ALTA" \
   -H "Authorization: Bearer $TOKEN"
 
 # 4. Indicadores
-curl -s http://localhost:8080/api/dashboard/metricas -H "Authorization: Bearer $TOKEN"
+curl -s http://localhost/api/dashboard/metricas -H "Authorization: Bearer $TOKEN"
 
 # 5. Acompanhar eventos em tempo real (deixe rodando e abra um chamado ALTA em outro terminal)
-ADMIN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+ADMIN=$(curl -s -X POST http://localhost/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"ana.souza@fadex.org.br","senha":"suporte123"}' \
   | grep -o '"token":"[^"]*' | cut -d'"' -f4)
-curl -N "http://localhost:8080/api/eventos/stream?token=$ADMIN"
+curl -N "http://localhost/api/eventos/stream?token=$ADMIN"
 
 # 6. ADMIN corrige a classificação da IA
-curl -s -X PATCH http://localhost:8080/api/chamados/1/triagem \
+curl -s -X PATCH http://localhost/api/chamados/1/triagem \
   -H "Authorization: Bearer $ADMIN" -H "Content-Type: application/json" \
   -d '{"categoria":"REDE","prioridade":"MEDIA"}'
 
 # 7. Detecção de duplicados — relate o mesmo incidente com outras palavras
-curl -s -X POST http://localhost:8080/api/chamados \
+curl -s -X POST http://localhost/api/chamados \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"titulo":"Compartilhamento de rede fora do ar",
        "descricao":"O servidor de arquivos não abre em nenhuma máquina do setor e ninguém consegue trabalhar."}'
@@ -283,10 +355,37 @@ Alternar entre elas é mudança de variável de ambiente, sem tocar em nenhuma l
 ```bash
 TRIAGE_PROVIDER=gemini
 GEMINI_API_KEY=sua-chave
+GEMINI_MODEL=gemini-3.6-flash
 ```
 
 Se o provider externo falhar (timeout, cota, rede fora), o `TriageService` **cai automaticamente
 na heurística local** — a abertura de um chamado nunca falha por indisponibilidade da IA.
+
+> **O fallback é silencioso, por projeto.** Isso protege a abertura do chamado, mas significa que
+> uma IA mal configurada não se anuncia: o chamado abre normalmente, classificado pela heurística.
+> Para saber o que está realmente em uso, dois lugares dizem a verdade — a linha
+> `Triagem automática usando o provider '...'` no log de startup (qual provider foi **escolhido**)
+> e o campo `triagem.provedor` de cada chamado (quem **de fato** classificou). Quando os dois
+> divergem, houve falha e queda para a heurística; o motivo sai no `WARN` do `TriageService`.
+
+**Duas armadilhas de configuração que valem o aviso:**
+
+1. **`mvn spring-boot:run` não lê o `.env`.** Esse arquivo é convenção do Docker Compose, não do
+   Spring. Rodando o backend direto no host, exporte as variáveis no ambiente do processo antes:
+   ```powershell
+   $env:TRIAGE_PROVIDER='gemini'; $env:GEMINI_API_KEY='sua-chave'; mvn spring-boot:run
+   ```
+   Via `docker compose up`, o `.env` é lido automaticamente e nada disso é necessário.
+
+2. **Nomes de modelo expiram.** Um modelo aposentado devolve `404 NOT_FOUND` e a triagem cai na
+   heurística. Pior: um modelo pode **aparecer na listagem** e ainda assim recusar a chamada
+   (`"no longer available to new users"`), então listar não prova disponibilidade — só uma chamada
+   real prova:
+   ```bash
+   curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/SEU_MODELO:generateContent" \
+     -H "x-goog-api-key: SUA_CHAVE" -H "Content-Type: application/json" \
+     -d '{"contents":[{"parts":[{"text":"ok"}]}]}'
+   ```
 
 ---
 

@@ -5,6 +5,9 @@
 !.env.example
 
 # --- Overrides locais do Docker Compose ---
+# Apenas o `override`, que o compose carrega sozinho e serve para ajustes de cada
+# maquina. O `docker-compose.local.yml` E versionado de proposito: e ele que faz
+# a Opcao 2 do README funcionar em um clone limpo.
 docker-compose.override.yml
 
 # --- Java / Maven ---

@@ -7,14 +7,21 @@
 
 import type { ReactNode } from 'react';
 import { ErroApi } from '../api/erros';
+import { IconeCirculo, type NomeIcone } from './Icone';
 
 function Moldura({
   icone,
+  fundo,
+  cor,
   titulo,
   descricao,
   acao,
 }: {
-  icone: string;
+  icone: NomeIcone;
+  /** Cor do círculo atrás do ícone: neutra para estados sem falha, vermelha
+   *  quando algo deu errado — como no design. */
+  fundo: string;
+  cor: string;
   titulo: string;
   descricao: string;
   acao?: ReactNode;
@@ -30,9 +37,7 @@ function Moldura({
         gap: 8,
       }}
     >
-      <div aria-hidden="true" style={{ fontSize: 32, lineHeight: 1 }}>
-        {icone}
-      </div>
+      <IconeCirculo nome={icone} fundo={fundo} cor={cor} />
       <p style={{ margin: 0, fontWeight: 700, color: 'var(--ink)' }}>{titulo}</p>
       <p style={{ margin: 0, fontSize: 14, color: 'var(--mut)', maxWidth: 420 }}>{descricao}</p>
       {acao && <div style={{ marginTop: 8 }}>{acao}</div>}
@@ -49,13 +54,24 @@ export function EstadoVazio({
   descricao?: string;
   acao?: ReactNode;
 }) {
-  return <Moldura icone="📭" titulo={titulo} descricao={descricao} acao={acao} />;
+  return (
+    <Moldura
+      icone="busca"
+      fundo="var(--ntl)"
+      cor="#94a3b8"
+      titulo={titulo}
+      descricao={descricao}
+      acao={acao}
+    />
+  );
 }
 
 export function EstadoSemPermissao() {
   return (
     <Moldura
-      icone="🔒"
+      icone="cadeado"
+      fundo="var(--hil)"
+      cor="var(--hi)"
       titulo="Você não possui permissão para visualizar este chamado"
       descricao="Este chamado pertence a outro solicitante. Se acredita que isso é um engano, procure a equipe de suporte."
     />
@@ -65,7 +81,9 @@ export function EstadoSemPermissao() {
 export function EstadoNaoEncontrado() {
   return (
     <Moldura
-      icone="🔍"
+      icone="busca"
+      fundo="var(--ntl)"
+      cor="#94a3b8"
       titulo="Chamado não encontrado"
       descricao="O chamado que você tentou abrir não existe ou foi removido."
     />
@@ -82,7 +100,9 @@ export function EstadoErro({ erro, aoTentarNovamente }: { erro: unknown; aoTenta
 
   return (
     <Moldura
-      icone={semConexao ? '🔌' : '⚠️'}
+      icone="alerta"
+      fundo="var(--hil)"
+      cor="var(--hi)"
       titulo={semConexao ? 'Sem conexão com o servidor' : 'Não foi possível carregar'}
       descricao={mensagem}
       acao={

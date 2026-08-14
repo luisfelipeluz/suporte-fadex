@@ -6,6 +6,7 @@ import type { ChamadoResumo, Metricas, Prioridade, StatusChamado } from '../api/
 import { useAuth } from '../auth/AuthContext';
 import { OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
 import { EstadoErro, EstadoVazio, EsqueletoLinhas } from '../components/Estados';
+import { Icone } from '../components/Icone';
 import { QuadroKanban } from '../components/QuadroKanban';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa, percentual } from '../utils/formato';
@@ -119,7 +120,9 @@ export function Dashboard() {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, letterSpacing: '-0.02em' }}>Visão geral</h1>
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.025em' }}>
+            Visão geral
+          </h1>
           <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--mut)' }}>
             {admin
               ? 'Acompanhe os chamados e a operação do suporte em tempo real.'
@@ -154,7 +157,7 @@ export function Dashboard() {
             onClick={() => setKanbanAberto(true)}
             title="Abrir o quadro Kanban do fluxo de chamados"
           >
-            <span aria-hidden="true">▤</span> Kanban
+            <Icone nome="colunas" tamanho={15} traco={1.9} /> Kanban
           </button>
         </div>
       </div>
@@ -176,33 +179,81 @@ export function Dashboard() {
               borderColor: kpi.destaque && kpi.valor > 0 ? '#f6c9c9' : 'var(--bd)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span
-                aria-hidden="true"
-                style={{ width: 7, height: 7, borderRadius: '50%', background: kpi.cor }}
-              />
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mut)' }}>
-                {kpi.rotulo}
-              </span>
-            </div>
-            <p
+            <div
               style={{
-                margin: '10px 0 0',
-                fontSize: 30,
-                fontWeight: 800,
-                lineHeight: 1,
-                color: kpi.destaque && kpi.valor > 0 ? '#b3261e' : 'var(--ink)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
               }}
             >
-              {kpi.valor}
-            </p>
-            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--mut)' }}>
-              {kpi.destaque
-                ? kpi.valor > 0
-                  ? 'requer atenção'
-                  : 'nada pendente'
-                : `${percentual(kpi.valor, total)}% do total`}
-            </p>
+              <span
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: 'var(--mut)',
+                }}
+              >
+                {kpi.rotulo}
+              </span>
+              <span
+                aria-hidden="true"
+                style={{ width: 8, height: 8, borderRadius: '50%', background: kpi.cor }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '9px 0 0' }}>
+              <span
+                style={{
+                  fontSize: 30,
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  letterSpacing: '-0.03em',
+                  fontVariantNumeric: 'tabular-nums',
+                  color: kpi.destaque && kpi.valor > 0 ? '#b3261e' : 'var(--ink)',
+                }}
+              >
+                {kpi.valor}
+              </span>
+              <span
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: kpi.destaque && kpi.valor > 0 ? '#b3261e' : 'var(--mut)',
+                }}
+              >
+                {kpi.destaque
+                  ? kpi.valor > 0
+                    ? 'requer atenção'
+                    : 'nada pendente'
+                  : `${percentual(kpi.valor, total)}% do total`}
+              </span>
+            </div>
+
+            {/* A barra repete em forma o que o texto acima diz em numero: a
+                fatia deste status dentro do total. */}
+            <div
+              aria-hidden="true"
+              style={{
+                height: 3,
+                marginTop: 9,
+                background: 'var(--ntl)',
+                borderRadius: 3,
+                overflow: 'hidden',
+              }}
+            >
+              <span
+                style={{
+                  display: 'block',
+                  height: '100%',
+                  width: `${percentual(kpi.valor, total)}%`,
+                  background: kpi.cor,
+                  animation: 'bar .6s ease',
+                }}
+              />
+            </div>
           </div>
         ))}
       </div>

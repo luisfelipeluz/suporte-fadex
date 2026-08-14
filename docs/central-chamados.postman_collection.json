@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "Central de Chamados FADEX",
-    "description": "Coleção de requisições da API da Central de Chamados com Triagem Inteligente.\n\n## Como usar\n\n1. Suba a aplicação com `docker compose up --build`.\n2. Rode **Autenticação → Login (ADMIN)**. O token é salvo automaticamente na variável de coleção `token` pelo script de teste da requisição.\n3. As demais requisições já usam `{{token}}` no cabeçalho `Authorization`.\n\nPara testar o perfil SOLICITANTE, rode **Login (SOLICITANTE)** e repita as chamadas: a API passa a devolver apenas os chamados daquele usuário, e as operações administrativas respondem 403.\n\n## Credenciais de teste\n\n| Papel | E-mail | Senha |\n|---|---|---|\n| ADMIN | ana.souza@fadex.org.br | suporte123 |\n| SOLICITANTE | joao.pereira@fadex.org.br | suporte123 |",
+    "description": "Coleção de requisições da API da Central de Chamados com Triagem Inteligente.\n\n## Como usar\n\n1. Suba a aplicação com `docker compose up --build`.\n2. Rode **Autenticação → Login (ADMIN)**. O token é salvo automaticamente na variável de coleção `token` pelo script de teste da requisição.\n3. As demais requisições já usam `{{token}}` no cabeçalho `Authorization`.\n\nPara testar o perfil SOLICITANTE, rode **Login (SOLICITANTE)** e repita as chamadas: a API passa a devolver apenas os chamados daquele usuário, e as operações administrativas respondem 403.\n\nA `baseUrl` aponta para `http://localhost`, onde o nginx da stack serve a API. Se você subiu o backend fora do Docker (Opção 2 do README), troque a variável para `http://localhost:8080`.\n\n## Credenciais de teste\n\n| Papel | E-mail | Senha |\n|---|---|---|\n| ADMIN | ana.souza@fadex.org.br | suporte123 |\n| SOLICITANTE | joao.pereira@fadex.org.br | suporte123 |",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8080",
+      "value": "http://localhost",
       "type": "string"
     },
     {

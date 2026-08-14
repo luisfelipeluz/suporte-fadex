@@ -12,6 +12,7 @@ import type {
 } from '../api/tipos';
 import { useAuth } from '../auth/AuthContext';
 import { Avatar, OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
+import { Icone } from '../components/Icone';
 import {
   EstadoCarregando,
   EstadoErro,
@@ -139,7 +140,7 @@ export function DetalheChamado() {
         onClick={() => navegar('/chamados')}
         style={{ alignSelf: 'flex-start', paddingLeft: 0 }}
       >
-        ← Voltar para {admin ? 'chamados' : 'meus chamados'}
+        ‹ Voltar para {admin ? 'chamados' : 'meus chamados'}
       </button>
 
       {/* ---------------------------------------------------------------- */}
@@ -155,20 +156,43 @@ export function DetalheChamado() {
           }}
         >
           <div style={{ minWidth: 0 }}>
-            <span className="mono" style={{ fontSize: 13, color: 'var(--mut)' }}>
-              #{chamado.id}
-            </span>
-            <h1 style={{ margin: '4px 0 10px', fontSize: 21, letterSpacing: '-0.02em' }}>
-              {chamado.titulo}
-            </h1>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginBottom: 7,
+                flexWrap: 'wrap',
+              }}
+            >
+              <span className="mono" style={{ fontSize: 12.5, color: 'var(--mut)' }}>
+                #{chamado.id}
+              </span>
               <StatusBadge status={chamado.status} />
               <PriorityBadge prioridade={chamado.prioridade} />
-              <span className="badge" style={{ background: 'var(--ntl)', color: 'var(--ink2)' }}>
+              <span
+                className="badge"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--bd)',
+                  color: 'var(--ink2)',
+                  fontWeight: 600,
+                }}
+              >
                 {chamado.categoriaRotulo}
               </span>
-              <OrigemBadge origem={t.origem} />
             </div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 23,
+                fontWeight: 800,
+                letterSpacing: '-0.025em',
+                textWrap: 'pretty',
+              }}
+            >
+              {chamado.titulo}
+            </h1>
           </div>
 
           {(podeGerenciar || (ehSolicitante && !chamado.encerrado)) && (
@@ -202,15 +226,53 @@ export function DetalheChamado() {
             { rotulo: 'Atualizado em', valor: dataCompleta(chamado.atualizadoEm) },
           ].map((item) => (
             <div key={item.rotulo}>
-              <dt style={{ fontSize: 12, color: 'var(--mut)' }}>{item.rotulo}</dt>
-              <dd style={{ margin: '3px 0 0', fontSize: 14, fontWeight: 600 }}>{item.valor}</dd>
+              <dt
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'var(--mut)',
+                }}
+              >
+                {item.rotulo}
+              </dt>
+              <dd style={{ margin: '5px 0 0', fontSize: 13, fontWeight: 600 }}>{item.valor}</dd>
             </div>
           ))}
+
+          <div>
+            <dt
+              style={{
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--mut)',
+              }}
+            >
+              Origem da classificação
+            </dt>
+            <dd style={{ margin: '5px 0 0' }}>
+              <OrigemBadge origem={t.origem} />
+            </dd>
+          </div>
         </dl>
 
         {/* Descrição */}
         <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--bd)' }}>
-          <h2 style={{ margin: '0 0 8px', fontSize: 13, color: 'var(--mut)' }}>DESCRIÇÃO</h2>
+          <h2
+            style={{
+              margin: '0 0 8px',
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              color: 'var(--mut)',
+            }}
+          >
+            Descrição
+          </h2>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
             {chamado.descricao}
           </p>
@@ -237,8 +299,18 @@ export function DetalheChamado() {
               style={{ borderColor: 'var(--md)', background: 'var(--mdl)' }}
               aria-label="Possíveis chamados duplicados"
             >
-              <h2 style={{ margin: '0 0 4px', fontSize: 15, color: 'var(--md)' }}>
-                ⧉ Possíveis duplicados
+              <h2
+                style={{
+                  margin: '0 0 4px',
+                  fontSize: 15,
+                  color: 'var(--md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <Icone nome="duplicado" tamanho={16} traco={1.8} />
+                Possíveis duplicados
               </h2>
               <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--ink2)' }}>
                 {chamado.possiveisDuplicados.length === 1
@@ -316,7 +388,7 @@ export function DetalheChamado() {
 
           {/* Fluxo de status */}
           <section className="card card-pad">
-            <h2 style={{ margin: '0 0 14px', fontSize: 15 }}>Fluxo do chamado</h2>
+            <h2 style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--mut)' }}>Fluxo de status</h2>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               {FLUXO.map((s, i) => {
@@ -332,7 +404,11 @@ export function DetalheChamado() {
                         color: concluido ? '#0b5f58' : atual ? 'var(--acd)' : '#94a3b8',
                       }}
                     >
-                      <span aria-hidden="true">{concluido ? '✓' : i + 1}</span>
+                      {concluido ? (
+                        <Icone nome="check" tamanho={11} traco={3} />
+                      ) : (
+                        <span aria-hidden="true">{i + 1}</span>
+                      )}
                       {ROTULO_STATUS[s]}
                     </span>
                     {i < FLUXO.length - 1 && (
@@ -388,7 +464,7 @@ export function DetalheChamado() {
                         )
                       }
                     >
-                      <span aria-hidden="true">←</span> Retornar para{' '}
+                      <Icone nome="setaEsquerda" tamanho={14} /> Retornar para{' '}
                       {ROTULO_STATUS[chamado.statusAnterior]}
                     </button>
                   )}
@@ -422,7 +498,7 @@ export function DetalheChamado() {
 
           {/* Histórico */}
           <section className="card card-pad">
-            <h2 style={{ margin: '0 0 16px', fontSize: 15 }}>Histórico</h2>
+            <h2 style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--mut)' }}>Histórico</h2>
 
             <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {chamado.historico.map((evento, i) => (
@@ -483,7 +559,18 @@ export function DetalheChamado() {
                 marginBottom: 16,
               }}
             >
-              <h2 style={{ margin: 0, fontSize: 15 }}>Comentários</h2>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: 'var(--mut)',
+                }}
+              >
+                Comentários
+              </h2>
               <span style={{ fontSize: 12, color: 'var(--mut)' }}>
                 {chamado.comentarios.length} registro
                 {chamado.comentarios.length === 1 ? '' : 's'}
@@ -573,7 +660,18 @@ export function DetalheChamado() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Triagem inteligente */}
           <section className="card card-pad">
-            <h2 style={{ margin: '0 0 4px', fontSize: 15 }}>✨ Triagem inteligente</h2>
+            <h2
+              style={{
+                margin: '0 0 4px',
+                fontSize: 15,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <Icone nome="brilho" tamanho={16} traco={1.8} cor="var(--ac)" />
+              Triagem inteligente
+            </h2>
             <p style={{ margin: '0 0 16px', fontSize: 12, color: 'var(--mut)' }}>
               Classificação automática {t.provedor ? `via ${t.provedor}` : ''}
             </p>
@@ -796,7 +894,7 @@ export function DetalheChamado() {
 
           {/* Responsável */}
           <section className="card card-pad">
-            <h2 style={{ margin: '0 0 12px', fontSize: 15 }}>Responsável</h2>
+            <h2 style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--mut)' }}>Responsável</h2>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Avatar iniciais={chamado.responsavel?.iniciais ?? ''} destaque={!!chamado.responsavel} />

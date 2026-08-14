@@ -1,17 +1,43 @@
+/**
+ * Entrada do sistema, em tela dividida.
+ *
+ * O painel escuro à esquerda não é enfeite: é o que apresenta o produto a quem
+ * abre o sistema pela primeira vez — e, num desafio técnico, a quem vai avaliar.
+ * O formulário fica à direita, com largura de leitura curta, para que a ação
+ * principal não disponha o olho junto com o texto de apresentação.
+ *
+ * No celular a coluna escura sai de cena (`.login-split` em global.css): numa
+ * tela estreita ela empurraria o formulário para baixo da dobra, que é
+ * exatamente o oposto do que ela existe para fazer.
+ */
+
 import { useState, type FormEvent } from 'react';
 
 import { ErroApi } from '../api/erros';
 import { useAuth } from '../auth/AuthContext';
+import { Icone } from '../components/Icone';
 
 type Aba = 'login' | 'cadastro';
 
 /** Credenciais de demonstração, exibidas para agilizar a avaliação do desafio. */
 const CONTAS_DEMO = [
-  { papel: 'ADMIN', nome: 'Ana Souza', email: 'ana.souza@fadex.org.br' },
-  { papel: 'SOLICITANTE', nome: 'João Pereira', email: 'joao.pereira@fadex.org.br' },
+  { papel: 'ADMIN', nome: 'Ana Souza', email: 'ana.souza@fadex.org.br', area: 'Suporte' },
+  {
+    papel: 'SOLICITANTE',
+    nome: 'João Pereira',
+    email: 'joao.pereira@fadex.org.br',
+    area: 'Financeiro',
+  },
 ] as const;
 
 const SENHA_DEMO = 'suporte123';
+
+/** Diferenciais listados no painel de apresentação, na ordem do design. */
+const DESTAQUES = [
+  'Gestão de chamados de ponta a ponta',
+  'Triagem inteligente por IA, revisável pelo ADMIN',
+  'Monitoramento em tempo real com alerta de alta prioridade',
+];
 
 export function Login() {
   const { entrar, cadastrar } = useAuth();
@@ -72,7 +98,7 @@ export function Login() {
     borderRadius: 6,
     border: 'none',
     cursor: 'pointer',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 600,
     background: ativa ? '#fff' : 'transparent',
     color: ativa ? 'var(--ink)' : 'var(--mut)',
@@ -80,46 +106,118 @@ export function Login() {
   });
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr)',
-        placeItems: 'center',
-        padding: 24,
-      }}
-    >
-      <div style={{ width: '100%', maxWidth: 420 }}>
-        {/* Identidade */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div
+    <div className="login-split">
+      {/* ------------------------------------------------------------------ */}
+      {/* Apresentação                                                        */}
+      {/* ------------------------------------------------------------------ */}
+      <aside className="login-marca">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span
             style={{
-              width: 46,
-              height: 46,
-              borderRadius: 12,
+              width: 30,
+              height: 30,
               background: 'var(--ac)',
-              color: '#fff',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 22,
+              borderRadius: 6,
+              display: 'grid',
+              placeItems: 'center',
               fontWeight: 800,
-              marginBottom: 12,
+              fontSize: 14,
             }}
           >
             F
-          </div>
-          <h1 style={{ margin: 0, fontSize: 24, letterSpacing: '-0.02em' }}>Central de Chamados</h1>
-          <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--mut)' }}>
-            Suporte interno com triagem inteligente
-          </p>
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.01em' }}>
+            FADEX <span style={{ color: '#94a3b8', fontWeight: 500 }}>Suporte</span>
+          </span>
         </div>
 
-        <div className="card card-pad">
-          {/* Alternância login / cadastro */}
+        <div style={{ maxWidth: 460, display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--ac)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Central de Chamados
+          </p>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 40,
+              lineHeight: 1.08,
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              textWrap: 'pretty',
+            }}
+          >
+            Abra o chamado. A triagem é automática.
+          </h1>
+
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: '#cbd5e1' }}>
+            Descreva o problema em texto livre — a IA sugere categoria e prioridade, e a equipe de
+            suporte acompanha tudo em tempo real.
+          </p>
+
+          <ol
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: '8px 0 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 14,
+            }}
+          >
+            {DESTAQUES.map((texto, i) => (
+              <li key={texto} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    flex: 'none',
+                    border: '1px solid #334155',
+                    borderRadius: 5,
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: 'var(--ac)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <span style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.5 }}>{texto}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>
+          Desafio técnico · FADEX · Central de Chamados
+        </p>
+      </aside>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Formulário                                                          */}
+      {/* ------------------------------------------------------------------ */}
+      <main className="login-form">
+        <div style={{ width: '100%', maxWidth: 388 }}>
           <div
             role="tablist"
-            style={{ display: 'flex', gap: 4, background: 'var(--ntl)', padding: 4, borderRadius: 8, marginBottom: 20 }}
+            style={{
+              display: 'flex',
+              gap: 2,
+              background: 'var(--ntl)',
+              padding: 3,
+              borderRadius: 'var(--rd)',
+              marginBottom: 26,
+            }}
           >
             <button
               type="button"
@@ -147,24 +245,35 @@ export function Login() {
             </button>
           </div>
 
+          <h2 style={{ margin: '0 0 6px', fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>
+            {aba === 'login' ? 'Central de Chamados' : 'Criar conta'}
+          </h2>
+          <p style={{ margin: '0 0 26px', fontSize: 14, color: 'var(--mut)' }}>
+            {aba === 'login'
+              ? 'Acesse com seu e-mail corporativo.'
+              : 'Seu acesso é criado como solicitante e liberado pela equipe de suporte.'}
+          </p>
+
           {erro && (
             <div
               role="alert"
               style={{
+                display: 'flex',
+                gap: 10,
+                alignItems: 'flex-start',
                 background: 'var(--hil)',
                 border: '1px solid #f6c9c9',
-                color: '#b3261e',
-                borderRadius: 8,
-                padding: '10px 12px',
-                fontSize: 13,
-                marginBottom: 16,
+                borderRadius: 'var(--rd)',
+                padding: '11px 12px',
+                marginBottom: 18,
               }}
             >
-              {erro}
+              <Icone nome="alertaCirculo" tamanho={16} cor="var(--hi)" style={{ marginTop: 1 }} />
+              <span style={{ fontSize: 13, color: '#b3261e', lineHeight: 1.45 }}>{erro}</span>
             </div>
           )}
 
-          <form onSubmit={aoEnviar} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={aoEnviar} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {aba === 'cadastro' && (
               <div className="field">
                 <label className="label" htmlFor="nome">
@@ -193,7 +302,7 @@ export function Login() {
                 className={`input ${errosCampo.email ? 'input-erro' : ''}`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu.nome@fadex.org.br"
+                placeholder="nome@fadex.org.br"
                 autoComplete="email"
                 required
               />
@@ -217,29 +326,50 @@ export function Login() {
             </div>
 
             {aba === 'cadastro' && (
-              <div className="field">
-                <label className="label" htmlFor="confirmacao">
-                  Confirmar senha
-                </label>
-                <input
-                  id="confirmacao"
-                  type="password"
-                  className={`input ${errosCampo.confirmacao ? 'input-erro' : ''}`}
-                  value={confirmacao}
-                  onChange={(e) => setConfirmacao(e.target.value)}
-                  autoComplete="new-password"
-                  required
-                />
-                {errosCampo.confirmacao && (
-                  <span className="erro-campo">{errosCampo.confirmacao}</span>
-                )}
-                <span className="hint">
-                  Contas criadas aqui recebem o perfil de solicitante.
-                </span>
-              </div>
+              <>
+                <div className="field">
+                  <label className="label" htmlFor="confirmacao">
+                    Confirmar senha
+                  </label>
+                  <input
+                    id="confirmacao"
+                    type="password"
+                    className={`input ${errosCampo.confirmacao ? 'input-erro' : ''}`}
+                    value={confirmacao}
+                    onChange={(e) => setConfirmacao(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                  />
+                  {errosCampo.confirmacao && (
+                    <span className="erro-campo">{errosCampo.confirmacao}</span>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 9,
+                    alignItems: 'flex-start',
+                    background: 'var(--ntl)',
+                    borderRadius: 'var(--rd)',
+                    padding: '10px 11px',
+                  }}
+                >
+                  <Icone nome="info" tamanho={15} cor="var(--mut)" style={{ marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: 'var(--mut)', lineHeight: 1.45 }}>
+                    O papel de acesso não é escolhido no cadastro — apenas a equipe de suporte
+                    concede o perfil ADMIN.
+                  </span>
+                </div>
+              </>
             )}
 
-            <button type="submit" className="btn btn-primary" disabled={carregando} style={{ marginTop: 4 }}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={carregando}
+              style={{ marginTop: 4, width: '100%', padding: 12 }}
+            >
               {carregando
                 ? aba === 'login'
                   ? 'Entrando…'
@@ -249,55 +379,70 @@ export function Login() {
                   : 'Criar conta'}
             </button>
           </form>
-        </div>
 
-        {/* Atalho para a avaliação do desafio */}
-        <div className="card" style={{ marginTop: 16, padding: 16 }}>
-          <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 700, color: 'var(--mut)' }}>
-            CONTAS DE TESTE
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {CONTAS_DEMO.map((conta) => (
-              <button
-                key={conta.email}
-                type="button"
-                onClick={() => usarConta(conta.email)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  padding: '9px 12px',
-                  border: '1px solid var(--bd)',
-                  borderRadius: 8,
-                  background: 'var(--sf)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                <span>
-                  <span style={{ display: 'block', fontSize: 13, fontWeight: 700 }}>{conta.nome}</span>
-                  <span style={{ display: 'block', fontSize: 12, color: 'var(--mut)' }}>
-                    {conta.email}
-                  </span>
-                </span>
-                <span
-                  className="badge"
-                  style={{
-                    background: conta.papel === 'ADMIN' ? 'var(--acl)' : 'var(--ntl)',
-                    color: conta.papel === 'ADMIN' ? 'var(--acd)' : 'var(--ink2)',
-                  }}
-                >
-                  {conta.papel}
-                </span>
-              </button>
-            ))}
+          {/* Atalho para a avaliação do desafio */}
+          <div style={{ marginTop: 30, paddingTop: 20, borderTop: '1px solid var(--bd)' }}>
+            <p
+              style={{
+                margin: '0 0 10px',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.07em',
+                textTransform: 'uppercase',
+                color: 'var(--mut)',
+              }}
+            >
+              Demonstração — escolha o perfil
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {CONTAS_DEMO.map((conta) => {
+                const escolhida = email === conta.email;
+                return (
+                  <button
+                    key={conta.email}
+                    type="button"
+                    onClick={() => usarConta(conta.email)}
+                    style={{
+                      textAlign: 'left',
+                      padding: '10px 11px',
+                      border: `1px solid ${escolhida ? '#c7d7fb' : 'var(--bd)'}`,
+                      background: escolhida ? 'var(--acl)' : 'var(--sf)',
+                      borderRadius: 'var(--rd)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: 'block',
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: 'var(--ink)',
+                      }}
+                    >
+                      {conta.papel}
+                    </span>
+                    <span
+                      style={{
+                        display: 'block',
+                        fontSize: 11.5,
+                        color: 'var(--mut)',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {conta.nome} · {conta.area}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p style={{ margin: '10px 0 0', fontSize: 11.5, color: 'var(--mut)' }}>
+              Senha para ambas: <code className="mono">{SENHA_DEMO}</code>
+            </p>
           </div>
-          <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--mut)' }}>
-            Senha para ambas: <code className="mono">{SENHA_DEMO}</code>
-          </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

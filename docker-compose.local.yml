@@ -1,0 +1,29 @@
+# =============================================================================
+# Composicao para EXECUCAO LOCAL (Opcao 2 do README)
+# =============================================================================
+# Sobe apenas o banco em container e publica a porta no host, para que o backend
+# e o frontend rodem fora do Docker (`mvn spring-boot:run` e `npm run dev`)
+# falando com esse MySQL:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d mysql
+#
+# Por que um arquivo separado, e nao `ports` direto no docker-compose.yml:
+# a stack completa publica uma unica porta no host (a 80) de proposito — cada
+# porta a mais e uma chance de o `docker compose up` falhar numa maquina que ja
+# usa a 3306 ou a 8080. Este arquivo e opt-in explicito: quem nao passa o `-f`
+# nao paga esse custo.
+#
+# E por que nao `docker-compose.override.yml`: aquele nome e carregado
+# automaticamente pelo compose, o que reintroduziria a porta publicada na stack
+# completa sem ninguem pedir. Alem disso ele esta no .gitignore, reservado para
+# ajustes pessoais de cada maquina — este aqui e versionado justamente para que
+# a Opcao 2 do README funcione em um clone limpo.
+#
+# A porta padrao e a 3307, e nao a 3306: e comum a 3306 do host ja estar ocupada
+# por um MySQL instalado localmente. Para mudar, defina MYSQL_PORT no .env.
+# =============================================================================
+
+services:
+  mysql:
+    ports:
+      - "${MYSQL_PORT:-3307}:3306"

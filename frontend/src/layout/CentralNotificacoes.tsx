@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { Icone } from '../components/Icone';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa } from '../utils/formato';
 
@@ -23,16 +24,26 @@ export function CentralNotificacoes() {
         aria-label={
           naoLidas > 0 ? `Notificações, ${naoLidas} não lidas` : 'Notificações'
         }
-        style={{ position: 'relative', fontSize: 18, padding: '6px 10px' }}
+        style={{
+          position: 'relative',
+          width: 34,
+          height: 34,
+          padding: 0,
+          display: 'grid',
+          placeItems: 'center',
+          border: '1px solid var(--bd)',
+          background: 'var(--sf)',
+          borderRadius: 'var(--rd)',
+        }}
       >
-        <span aria-hidden="true">🔔</span>
+        <Icone nome="sino" tamanho={16} traco={1.9} cor="var(--ink2)" />
         {naoLidas > 0 && (
           <span
             aria-hidden="true"
             style={{
               position: 'absolute',
-              top: 2,
-              right: 4,
+              top: -4,
+              right: -4,
               minWidth: 16,
               height: 16,
               padding: '0 4px',

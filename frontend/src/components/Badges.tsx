@@ -7,6 +7,7 @@
 
 import type { OrigemClassificacao, Prioridade, StatusChamado } from '../api/tipos';
 import { ICONE_STATUS, ROTULO_PRIORIDADE, ROTULO_STATUS } from '../utils/formato';
+import { Icone } from './Icone';
 
 const CORES_PRIORIDADE: Record<Prioridade, { bg: string; fg: string; ponto: string }> = {
   ALTA: { bg: 'var(--hil)', fg: '#b3261e', ponto: '#dc2626' },
@@ -65,7 +66,8 @@ export function OrigemBadge({ origem }: { origem: OrigemClassificacao }) {
       }}
       title={ia ? 'Classificado automaticamente pela IA' : 'Classificação ajustada manualmente'}
     >
-      {ia ? '✨ IA' : 'MANUAL'}
+      {ia && <Icone nome="brilho" tamanho={11} traco={1.8} />}
+      {ia ? 'IA' : 'MANUAL'}
     </span>
   );
 }
