@@ -6,6 +6,7 @@ import type { ChamadoResumo, Metricas, Prioridade, StatusChamado } from '../api/
 import { useAuth } from '../auth/AuthContext';
 import { OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
 import { EstadoErro, EstadoVazio, EsqueletoLinhas } from '../components/Estados';
+import { QuadroKanban } from '../components/QuadroKanban';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa, percentual } from '../utils/formato';
 
@@ -37,6 +38,7 @@ export function Dashboard() {
   const [recentes, setRecentes] = useState<ChamadoResumo[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<unknown>(null);
+  const [kanbanAberto, setKanbanAberto] = useState(false);
 
   const metricas = metricasTempoReal ?? metricasIniciais;
 
@@ -125,24 +127,36 @@ export function Dashboard() {
           </p>
         </div>
 
-        <span
-          className="badge"
-          style={{
-            background: conexao === 'conectado' ? 'var(--lol)' : 'var(--mdl)',
-            color: conexao === 'conectado' ? '#0b5f58' : '#8a4008',
-          }}
-        >
+        {/* Afastado do título, no canto oposto do cabeçalho. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
           <span
-            aria-hidden="true"
+            className="badge"
             style={{
-              width: 7,
-              height: 7,
-              borderRadius: '50%',
-              background: conexao === 'conectado' ? '#0f766e' : '#b45309',
+              background: conexao === 'conectado' ? 'var(--lol)' : 'var(--mdl)',
+              color: conexao === 'conectado' ? '#0b5f58' : '#8a4008',
             }}
-          />
-          {conexao === 'conectado' ? 'Atualização em tempo real' : 'Reconectando…'}
-        </span>
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: conexao === 'conectado' ? '#0f766e' : '#b45309',
+              }}
+            />
+            {conexao === 'conectado' ? 'Atualização em tempo real' : 'Reconectando…'}
+          </span>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setKanbanAberto(true)}
+            title="Abrir o quadro Kanban do fluxo de chamados"
+          >
+            <span aria-hidden="true">▤</span> Kanban
+          </button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -407,6 +421,8 @@ export function Dashboard() {
           </div>
         )}
       </section>
+
+      <QuadroKanban aberto={kanbanAberto} aoFechar={() => setKanbanAberto(false)} />
     </div>
   );
 }

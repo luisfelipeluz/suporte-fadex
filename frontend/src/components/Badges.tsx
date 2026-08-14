@@ -14,7 +14,8 @@ const CORES_PRIORIDADE: Record<Prioridade, { bg: string; fg: string; ponto: stri
   BAIXA: { bg: 'var(--lol)', fg: '#0b5f58', ponto: '#0f766e' },
 };
 
-const CORES_STATUS: Record<StatusChamado, { bg: string; fg: string; cor: string }> = {
+/** Exportado para que o quadro Kanban pinte as colunas com as mesmas cores dos badges. */
+export const CORES_STATUS: Record<StatusChamado, { bg: string; fg: string; cor: string }> = {
   ABERTO: { bg: 'var(--acl)', fg: '#1a4fbd', cor: '#2563eb' },
   EM_ANDAMENTO: { bg: 'var(--mdl)', fg: '#8a4008', cor: '#b45309' },
   RESOLVIDO: { bg: 'var(--lol)', fg: '#0b5f58', cor: '#0f766e' },
