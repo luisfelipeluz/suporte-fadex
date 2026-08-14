@@ -361,14 +361,58 @@ export function NovoChamado() {
 
   // ------------------------------------------------------------- formulário
   return (
-    <div style={{ maxWidth: 640 }}>
-      <h1 style={{ margin: 0, fontSize: 22, letterSpacing: '-0.02em' }}>Novo chamado</h1>
-      <p style={{ margin: '4px 0 20px', fontSize: 14, color: 'var(--mut)' }}>
-        Descreva o problema com suas palavras. Deixe nossa IA classificar sua solicitação
+    <div style={{ maxWidth: 840 }}>
+      <button
+        type="button"
+        onClick={() => navegar('/chamados')}
+        style={{
+          border: 0,
+          background: 'transparent',
+          padding: 0,
+          marginBottom: 10,
+          fontSize: 12.5,
+          color: 'var(--mut)',
+          cursor: 'pointer',
+        }}
+      >
+        ‹ Voltar
+      </button>
+
+      <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.025em' }}>
+        Novo chamado
+      </h1>
+      <p style={{ margin: '5px 0 18px', fontSize: 14, color: 'var(--mut)' }}>
+        Descreva o problema com suas palavras — deixe nossa IA classificar sua solicitação
         automaticamente.
       </p>
 
-      <div className="card card-pad">
+      <div className="card" style={{ overflow: 'hidden' }}>
+        {/* A nota da IA abre o cartao, como no design: ela responde a duvida
+            que aparece antes de a pessoa comecar a escrever ("onde escolho a
+            categoria?"), e nao depois de o formulario inteiro ter passado. */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 11,
+            alignItems: 'flex-start',
+            padding: '14px 18px',
+            background: 'var(--acl)',
+            borderBottom: '1px solid #dbe6fe',
+          }}
+        >
+          <Icone nome="brilho" tamanho={17} traco={1.8} cor="var(--ac)" style={{ marginTop: 1 }} />
+          <div>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--acd)' }}>
+              Você não precisa escolher categoria nem prioridade
+            </p>
+            <p style={{ margin: 0, fontSize: 12.5, color: '#3f6ecb', lineHeight: 1.45 }}>
+              A triagem inteligente analisa o texto e sugere a classificação. A equipe de suporte
+              revisa depois.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ padding: '20px 18px' }}>
         {erro && (
           <div
             role="alert"
@@ -389,58 +433,88 @@ export function NovoChamado() {
         <form onSubmit={aoEnviar} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="field">
             <label className="label" htmlFor="titulo">
-              Título
+              Título <span style={{ color: 'var(--hi)' }}>*</span>
             </label>
             <input
               id="titulo"
               className={`input ${errosCampo.titulo ? 'input-erro' : ''}`}
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
-              placeholder="Resuma o problema em uma frase"
+              placeholder="Ex.: Impressora do 3º andar não está funcionando"
               maxLength={200}
               required
             />
+            <span className="hint">Resuma o problema em uma frase.</span>
             {errosCampo.titulo && <span className="erro-campo">{errosCampo.titulo}</span>}
           </div>
 
           <div className="field">
             <label className="label" htmlFor="descricao">
-              Descrição
+              Descrição <span style={{ color: 'var(--hi)' }}>*</span>
             </label>
             <textarea
               id="descricao"
               className={`textarea ${errosCampo.descricao ? 'input-erro' : ''}`}
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              placeholder="O que aconteceu, desde quando, e quem está sendo afetado?"
+              placeholder="Conte o que aconteceu, desde quando, e o impacto no seu trabalho."
               maxLength={4000}
               required
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-              <span className="hint">
-                Quanto mais contexto, melhor a classificação automática.
-              </span>
+              <span className="hint">Quanto mais contexto, melhor a triagem.</span>
               <span className="hint mono">{descricao.length}/4000</span>
             </div>
             {errosCampo.descricao && <span className="erro-campo">{errosCampo.descricao}</span>}
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '12px 14px',
-              background: 'var(--acl)',
-              border: '1px solid #c7d7fb',
-              borderRadius: 8,
-            }}
-          >
-            <Icone nome="brilho" tamanho={17} traco={1.8} cor="var(--ac)" />
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--ink2)', lineHeight: 1.5 }}>
-              Você não precisa escolher categoria nem prioridade: a IA analisa o texto e sugere a
-              classificação, que a equipe de suporte pode revisar.
-            </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {['Categoria', 'Prioridade'].map((campo) => (
+              <div
+                key={campo}
+                style={{
+                  border: '1px dashed var(--bd)',
+                  borderRadius: 'var(--rd)',
+                  padding: '12px 13px',
+                  background: '#fafbfd',
+                }}
+              >
+                <p
+                  style={{
+                    margin: '0 0 5px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    color: 'var(--mut)',
+                  }}
+                >
+                  {campo}
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    fontSize: 13,
+                    color: 'var(--mut)',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: '50%',
+                      background: '#cbd5e1',
+                      flex: 'none',
+                    }}
+                  />
+                  Definida pela IA
+                </p>
+              </div>
+            ))}
           </div>
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -449,7 +523,7 @@ export function NovoChamado() {
             </button>
             <button
               type="button"
-              className="btn btn-ghost"
+              className="btn btn-secondary"
               onClick={() => {
                 setTitulo(EXEMPLO.titulo);
                 setDescricao(EXEMPLO.descricao);
@@ -458,7 +532,8 @@ export function NovoChamado() {
               Preencher com um exemplo
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
