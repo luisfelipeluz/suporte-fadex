@@ -7,6 +7,7 @@ import br.org.fadex.chamados.domain.Prioridade;
 import br.org.fadex.chamados.domain.StatusChamado;
 import br.org.fadex.chamados.domain.TipoEvento;
 import br.org.fadex.chamados.domain.Usuario;
+import br.org.fadex.chamados.duplicados.DetectorDuplicados;
 import br.org.fadex.chamados.exception.AcessoNegadoException;
 import br.org.fadex.chamados.exception.RecursoNaoEncontradoException;
 import br.org.fadex.chamados.exception.RegraDeNegocioException;
@@ -21,6 +22,7 @@ import br.org.fadex.chamados.triage.TriageService;
 import br.org.fadex.chamados.web.dto.AtualizarChamadoRequest;
 import br.org.fadex.chamados.web.dto.ChamadoDetalheResponse;
 import br.org.fadex.chamados.web.dto.ChamadoResumoResponse;
+import br.org.fadex.chamados.web.dto.ChamadoSimilarResponse;
 import br.org.fadex.chamados.web.dto.ComentarioResponse;
 import br.org.fadex.chamados.web.dto.CorrigirClassificacaoRequest;
 import br.org.fadex.chamados.web.dto.CriarChamadoRequest;
@@ -50,6 +52,7 @@ public class ChamadoService {
     private final UsuarioRepository usuarioRepository;
     private final HistoricoService historicoService;
     private final TriageService triageService;
+    private final DetectorDuplicados detectorDuplicados;
     private final ApplicationEventPublisher eventPublisher;
 
     public ChamadoService(
@@ -58,12 +61,14 @@ public class ChamadoService {
             UsuarioRepository usuarioRepository,
             HistoricoService historicoService,
             TriageService triageService,
+            DetectorDuplicados detectorDuplicados,
             ApplicationEventPublisher eventPublisher) {
         this.chamadoRepository = chamadoRepository;
         this.comentarioRepository = comentarioRepository;
         this.usuarioRepository = usuarioRepository;
         this.historicoService = historicoService;
         this.triageService = triageService;
+        this.detectorDuplicados = detectorDuplicados;
         this.eventPublisher = eventPublisher;
     }
 
@@ -128,7 +133,7 @@ public class ChamadoService {
 
         notificar(chamado, true);
 
-        return montarDetalhe(chamado);
+        return montarDetalhe(chamado, solicitante);
     }
 
     // =========================================================================
@@ -167,7 +172,7 @@ public class ChamadoService {
     @Transactional(readOnly = true)
     public ChamadoDetalheResponse buscarDetalhe(Long id, Usuario usuario) {
         Chamado chamado = buscarComPermissao(id, usuario);
-        return montarDetalhe(chamado);
+        return montarDetalhe(chamado, usuario);
     }
 
     // =========================================================================
@@ -189,7 +194,7 @@ public class ChamadoService {
 
         notificar(chamado, false);
 
-        return montarDetalhe(chamado);
+        return montarDetalhe(chamado, usuario);
     }
 
     /** Avanco de status. Exclusivo do ADMIN. */
@@ -217,7 +222,7 @@ public class ChamadoService {
 
         notificar(chamado, false);
 
-        return montarDetalhe(chamado);
+        return montarDetalhe(chamado, admin);
     }
 
     /** Atribuicao ou reatribuicao de responsavel. Exclusiva do ADMIN. */
@@ -245,7 +250,7 @@ public class ChamadoService {
 
         notificar(chamado, false);
 
-        return montarDetalhe(chamado);
+        return montarDetalhe(chamado, admin);
     }
 
     /**
@@ -288,7 +293,7 @@ public class ChamadoService {
 
         notificar(chamado, false);
 
-        return montarDetalhe(chamado);
+        return montarDetalhe(chamado, admin);
     }
 
     /** ADMIN corrige a classificacao; a sugestao original permanece registrada. */
@@ -313,7 +318,7 @@ public class ChamadoService {
 
         notificar(chamado, false);
 
-        return montarDetalhe(chamado);
+        return montarDetalhe(chamado, admin);
     }
 
     // =========================================================================
@@ -342,13 +347,36 @@ public class ChamadoService {
         return chamado;
     }
 
-    ChamadoDetalheResponse montarDetalhe(Chamado chamado) {
+    /**
+     * Monta o detalhe do chamado ja com os possiveis duplicados.
+     *
+     * <p>O {@code observador} nao e decorativo: e ele que define quais chamados
+     * entram na comparacao de similaridade. Passar o usuario da requisicao, e nao
+     * o solicitante do chamado, e o que impede que a lista de duplicados revele
+     * chamados que esse usuario nao teria permissao de ler.
+     */
+    ChamadoDetalheResponse montarDetalhe(Chamado chamado, Usuario observador) {
         List<ComentarioResponse> comentarios =
                 comentarioRepository.findByChamadoOrderByCriadoEmAsc(chamado).stream()
                         .map(ComentarioResponse::de)
                         .toList();
 
         return ChamadoDetalheResponse.de(
-                chamado, historicoService.doChamado(chamado), comentarios);
+                chamado,
+                historicoService.doChamado(chamado),
+                comentarios,
+                similares(chamado, observador));
+    }
+
+    /** Possiveis duplicados do chamado, na visao do usuario informado. */
+    @Transactional(readOnly = true)
+    public List<ChamadoSimilarResponse> similares(Long id, Usuario usuario) {
+        return similares(buscarComPermissao(id, usuario), usuario);
+    }
+
+    private List<ChamadoSimilarResponse> similares(Chamado chamado, Usuario observador) {
+        return detectorDuplicados.similaresA(chamado, observador).stream()
+                .map(ChamadoSimilarResponse::de)
+                .toList();
     }
 }

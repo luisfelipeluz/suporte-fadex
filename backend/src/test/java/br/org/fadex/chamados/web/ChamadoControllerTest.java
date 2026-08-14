@@ -479,6 +479,119 @@ class ChamadoControllerTest {
     }
 
     // =========================================================================
+    @Nested
+    @DisplayName("detecção de duplicados")
+    class DeteccaoDeDuplicados {
+
+        private static final String TITULO_REPETIDO = "Impressora do 3º andar sem imprimir";
+        private static final String DESCRICAO_REPETIDA =
+                "A impressora do 3º andar não imprime desde ontem. O setor inteiro está sem "
+                        + "imprimir os empenhos e aparece luz vermelha no painel.";
+
+        @Test
+        @DisplayName("aponta o chamado anterior ao abrir um relato equivalente")
+        void apontaChamadoEquivalenteNaAbertura() throws Exception {
+            long anterior = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+
+            mockMvc.perform(autenticado(post("/api/chamados"), tokenJoao)
+                            .content(chamado(TITULO_REPETIDO, DESCRICAO_REPETIDA)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.possiveisDuplicados.length()").value(1))
+                    .andExpect(jsonPath("$.possiveisDuplicados[0].id").value(anterior))
+                    .andExpect(jsonPath("$.possiveisDuplicados[0].titulo").value(TITULO_IMPRESSORA))
+                    .andExpect(jsonPath("$.possiveisDuplicados[0].status").value("ABERTO"))
+                    .andExpect(
+                            jsonPath("$.possiveisDuplicados[0].similaridade")
+                                    .value(greaterThanOrEqualTo(35)))
+                    .andExpect(jsonPath("$.possiveisDuplicados[0].termosEmComum").isNotEmpty());
+        }
+
+        @Test
+        @DisplayName("não aponta nada quando os chamados tratam de assuntos distintos")
+        void naoApontaAssuntosDistintos() throws Exception {
+            criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+
+            mockMvc.perform(autenticado(post("/api/chamados"), tokenJoao)
+                            .content(
+                                    chamado(
+                                            "Solicitação de acesso ao Drive do projeto",
+                                            "Novo colaborador precisa de permissão na pasta "
+                                                    + "compartilhada do projeto de extensão.")))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.possiveisDuplicados").isEmpty());
+        }
+
+        @Test
+        @DisplayName("o endpoint dedicado devolve a mesma lista")
+        void endpointDedicado() throws Exception {
+            long anterior = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            long novo = criar(tokenJoao, TITULO_REPETIDO, DESCRICAO_REPETIDA);
+
+            mockMvc.perform(autenticado(get("/api/chamados/" + novo + "/similares"), tokenJoao))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].id").value(anterior));
+        }
+
+        @Test
+        @DisplayName("SOLICITANTE não recebe chamado de outro usuário como duplicado")
+        void solicitanteNaoVeChamadoAlheio() throws Exception {
+            // Joao abre o incidente; Beatriz relata o mesmo problema em seguida.
+            criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            long deBeatriz = criar(tokenBeatriz, TITULO_REPETIDO, DESCRICAO_REPETIDA);
+
+            // Para Beatriz a sugestao viria com o titulo e o autor de um chamado que
+            // ela nao tem permissao de ler: a deteccao nao pode furar a autorizacao.
+            mockMvc.perform(
+                            autenticado(
+                                    get("/api/chamados/" + deBeatriz + "/similares"), tokenBeatriz))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isEmpty());
+        }
+
+        @Test
+        @DisplayName("ADMIN enxerga o duplicado entre solicitantes diferentes")
+        void adminVeDuplicadoEntreSolicitantes() throws Exception {
+            long deJoao = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            long deBeatriz = criar(tokenBeatriz, TITULO_REPETIDO, DESCRICAO_REPETIDA);
+
+            mockMvc.perform(
+                            autenticado(get("/api/chamados/" + deBeatriz + "/similares"), tokenAdmin))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].id").value(deJoao))
+                    .andExpect(jsonPath("$[0].solicitante.email").value(JOAO));
+        }
+
+        @Test
+        @DisplayName("chamado cancelado deixa de ser sugerido como duplicado")
+        void canceladoNaoEhSugerido() throws Exception {
+            long anterior = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            long novo = criar(tokenJoao, TITULO_REPETIDO, DESCRICAO_REPETIDA);
+
+            mockMvc.perform(autenticado(delete("/api/chamados/" + anterior), tokenJoao))
+                    .andExpect(status().isNoContent());
+
+            mockMvc.perform(autenticado(get("/api/chamados/" + novo + "/similares"), tokenJoao))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isEmpty());
+        }
+
+        @Test
+        @DisplayName("404 para chamado inexistente e 403 para chamado alheio")
+        void respeitaOsErrosDoDetalhe() throws Exception {
+            long deJoao = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+
+            mockMvc.perform(autenticado(get("/api/chamados/999999/similares"), tokenJoao))
+                    .andExpect(status().isNotFound());
+
+            mockMvc.perform(
+                            autenticado(get("/api/chamados/" + deJoao + "/similares"), tokenBeatriz))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    // =========================================================================
     // Apoio
     // =========================================================================
 

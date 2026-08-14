@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface ChamadoRepository
@@ -29,6 +31,25 @@ public interface ChamadoRepository
 
     @EntityGraph(attributePaths = {"solicitante", "responsavel"})
     Optional<Chamado> findWithUsuariosById(Long id);
+
+    // --- Candidatos a duplicado ----------------------------------------------
+    //
+    // A comparacao de similaridade acontece em memoria, entao a consulta precisa
+    // devolver um conjunto limitado: apenas chamados recentes, ja excluidos os
+    // cancelados, e no maximo o teto passado em `limite`. O mesmo par global x
+    // restrito ao solicitante das contagens vale aqui — um SOLICITANTE nunca pode
+    // receber, como "possivel duplicado", o titulo de um chamado alheio.
+
+    @EntityGraph(attributePaths = {"solicitante"})
+    List<Chamado> findByStatusNotInAndCriadoEmAfterOrderByCriadoEmDesc(
+            Collection<StatusChamado> statusIgnorados, Instant desde, Pageable limite);
+
+    @EntityGraph(attributePaths = {"solicitante"})
+    List<Chamado> findByStatusNotInAndCriadoEmAfterAndSolicitanteOrderByCriadoEmDesc(
+            Collection<StatusChamado> statusIgnorados,
+            Instant desde,
+            Usuario solicitante,
+            Pageable limite);
 
     // --- Contagens do dashboard ----------------------------------------------
     //

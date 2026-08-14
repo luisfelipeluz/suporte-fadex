@@ -11,6 +11,7 @@ import br.org.fadex.chamados.web.dto.AtribuirResponsavelRequest;
 import br.org.fadex.chamados.web.dto.AtualizarChamadoRequest;
 import br.org.fadex.chamados.web.dto.ChamadoDetalheResponse;
 import br.org.fadex.chamados.web.dto.ChamadoResumoResponse;
+import br.org.fadex.chamados.web.dto.ChamadoSimilarResponse;
 import br.org.fadex.chamados.web.dto.CorrigirClassificacaoRequest;
 import br.org.fadex.chamados.web.dto.CriarChamadoRequest;
 import br.org.fadex.chamados.web.dto.PaginaResponse;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/chamados")
@@ -127,6 +129,36 @@ public class ChamadoController {
             @PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado autenticado) {
 
         return ResponseEntity.ok(chamadoService.buscarDetalhe(id, autenticado.getUsuario()));
+    }
+
+    @GetMapping("/{id}/similares")
+    @Operation(
+            summary = "Lista chamados que possivelmente relatam o mesmo incidente",
+            description =
+                    """
+                    Compara o texto do chamado com os demais por similaridade de termos e devolve
+                    os mais próximos, do mais parecido para o menos, com os termos que motivaram a
+                    aproximação. A mesma lista já vem embutida no detalhe do chamado, em
+                    `possiveisDuplicados`; este endpoint existe para reconsultá-la isoladamente.
+
+                    O recorte de visibilidade é o mesmo da listagem: o ADMIN compara com todos os
+                    chamados, o SOLICITANTE apenas com os próprios.
+                    """)
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista possivelmente vazia"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Chamado pertence a outro solicitante",
+                content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Chamado inexistente",
+                content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    public ResponseEntity<List<ChamadoSimilarResponse>> similares(
+            @PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado autenticado) {
+
+        return ResponseEntity.ok(chamadoService.similares(id, autenticado.getUsuario()));
     }
 
     @PutMapping("/{id}")

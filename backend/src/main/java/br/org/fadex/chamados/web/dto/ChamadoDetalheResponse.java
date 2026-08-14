@@ -38,12 +38,19 @@ public record ChamadoDetalheResponse(
         List<EventoHistoricoResponse> historico,
 
         @Schema(description = "Comentários em ordem cronológica")
-        List<ComentarioResponse> comentarios) {
+        List<ComentarioResponse> comentarios,
+
+        @Schema(
+                description =
+                        "Chamados que possivelmente relatam o mesmo incidente, do mais parecido "
+                                + "para o menos. Vazio quando nada semelhante foi encontrado.")
+        List<ChamadoSimilarResponse> possiveisDuplicados) {
 
     public static ChamadoDetalheResponse de(
             Chamado chamado,
             List<EventoHistoricoResponse> historico,
-            List<ComentarioResponse> comentarios) {
+            List<ComentarioResponse> comentarios,
+            List<ChamadoSimilarResponse> possiveisDuplicados) {
 
         return new ChamadoDetalheResponse(
                 chamado.getId(),
@@ -63,6 +70,7 @@ public record ChamadoDetalheResponse(
                 chamado.getStatus().proximo().orElse(null),
                 chamado.getStatus().isEncerrado(),
                 historico,
-                comentarios);
+                comentarios,
+                possiveisDuplicados);
     }
 }
