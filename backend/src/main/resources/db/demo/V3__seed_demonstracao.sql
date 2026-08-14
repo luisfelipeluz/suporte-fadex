@@ -108,7 +108,7 @@ VALUES ((SELECT id FROM chamado WHERE titulo = 'Erro ao acessar sistema financei
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Internet indisponível no bloco B'), (SELECT id FROM usuario WHERE email = 'carlos.dias@fadex.org.br'), 'CHAMADO_ABERTO', 'Carlos Dias abriu o chamado', NULL, '2026-08-13 11:15:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
-VALUES ((SELECT id FROM chamado WHERE titulo = 'Internet indisponível no bloco B'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Rede / MÉDIA', 'CONFIANÇA MEDIA', '2026-08-13 11:15:00.000000');
+VALUES ((SELECT id FROM chamado WHERE titulo = 'Internet indisponível no bloco B'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Rede / MÉDIA', 'CONFIANÇA MÉDIA', '2026-08-13 11:15:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Internet indisponível no bloco B'), (SELECT id FROM usuario WHERE email = 'rafael.melo@fadex.org.br'), 'CLASSIFICACAO_CORRIGIDA', 'Classificação corrigida para: Rede / ALTA por Rafael Melo', NULL, '2026-08-13 12:30:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
@@ -119,7 +119,7 @@ VALUES ((SELECT id FROM chamado WHERE titulo = 'Internet indisponível no bloco 
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Falha no sistema de folha'), (SELECT id FROM usuario WHERE email = 'beatriz.rocha@fadex.org.br'), 'CHAMADO_ABERTO', 'Beatriz Rocha abriu o chamado', NULL, '2026-08-12 19:41:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
-VALUES ((SELECT id FROM chamado WHERE titulo = 'Falha no sistema de folha'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Sistemas / MÉDIA', 'CONFIANÇA MEDIA', '2026-08-12 19:41:00.000000');
+VALUES ((SELECT id FROM chamado WHERE titulo = 'Falha no sistema de folha'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Sistemas / MÉDIA', 'CONFIANÇA MÉDIA', '2026-08-12 19:41:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Falha no sistema de folha'), (SELECT id FROM usuario WHERE email = 'maria.lima@fadex.org.br'), 'CLASSIFICACAO_ACEITA', 'Classificação da IA aceita por Maria Lima', NULL, '2026-08-13 11:02:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
@@ -152,12 +152,12 @@ VALUES ((SELECT id FROM chamado WHERE titulo = 'Notebook não liga'), (SELECT id
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Planilha de prestação de contas travando'), (SELECT id FROM usuario WHERE email = 'fernanda.alves@fadex.org.br'), 'CHAMADO_ABERTO', 'Fernanda Alves abriu o chamado', NULL, '2026-08-12 13:12:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
-VALUES ((SELECT id FROM chamado WHERE titulo = 'Planilha de prestação de contas travando'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Software / MÉDIA', 'CONFIANÇA MEDIA', '2026-08-12 13:12:00.000000');
+VALUES ((SELECT id FROM chamado WHERE titulo = 'Planilha de prestação de contas travando'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Software / MÉDIA', 'CONFIANÇA MÉDIA', '2026-08-12 13:12:00.000000');
 
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Trocar teclado do atendimento'), (SELECT id FROM usuario WHERE email = 'lucas.prado@fadex.org.br'), 'CHAMADO_ABERTO', 'Lucas Prado abriu o chamado', NULL, '2026-08-11 18:22:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
-VALUES ((SELECT id FROM chamado WHERE titulo = 'Trocar teclado do atendimento'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Hardware / BAIXA', 'CONFIANÇA MEDIA', '2026-08-11 18:22:00.000000');
+VALUES ((SELECT id FROM chamado WHERE titulo = 'Trocar teclado do atendimento'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Hardware / BAIXA', 'CONFIANÇA MÉDIA', '2026-08-11 18:22:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Trocar teclado do atendimento'), (SELECT id FROM usuario WHERE email = 'camila.reis@fadex.org.br'), 'CLASSIFICACAO_CORRIGIDA', 'Classificação corrigida para: Hardware / BAIXA por Camila Reis', NULL, '2026-08-11 19:00:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
@@ -179,7 +179,7 @@ VALUES ((SELECT id FROM chamado WHERE titulo = 'Reset de senha do portal do pesq
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'VPN cai a cada 10 minutos'), (SELECT id FROM usuario WHERE email = 'joao.pereira@fadex.org.br'), 'CHAMADO_ABERTO', 'João Pereira abriu o chamado', NULL, '2026-08-10 17:03:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
-VALUES ((SELECT id FROM chamado WHERE titulo = 'VPN cai a cada 10 minutos'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Rede / MÉDIA', 'CONFIANÇA MEDIA', '2026-08-10 17:03:00.000000');
+VALUES ((SELECT id FROM chamado WHERE titulo = 'VPN cai a cada 10 minutos'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Rede / MÉDIA', 'CONFIANÇA MÉDIA', '2026-08-10 17:03:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'VPN cai a cada 10 minutos'), (SELECT id FROM usuario WHERE email = 'rafael.melo@fadex.org.br'), 'CLASSIFICACAO_ACEITA', 'Classificação da IA aceita por Rafael Melo', NULL, '2026-08-11 11:20:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
@@ -201,7 +201,7 @@ VALUES ((SELECT id FROM chamado WHERE titulo = 'Instalar leitor de PDF assináve
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
 VALUES ((SELECT id FROM chamado WHERE titulo = 'Monitor com listras na tela'), (SELECT id FROM usuario WHERE email = 'fernanda.alves@fadex.org.br'), 'CHAMADO_ABERTO', 'Fernanda Alves abriu o chamado', NULL, '2026-08-10 11:57:00.000000');
 INSERT INTO evento_historico (chamado_id, autor_id, tipo, descricao, etiqueta, criado_em)
-VALUES ((SELECT id FROM chamado WHERE titulo = 'Monitor com listras na tela'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Hardware / MÉDIA', 'CONFIANÇA MEDIA', '2026-08-10 11:57:00.000000');
+VALUES ((SELECT id FROM chamado WHERE titulo = 'Monitor com listras na tela'), NULL, 'CLASSIFICACAO_IA', 'IA classificou como: Hardware / MÉDIA', 'CONFIANÇA MÉDIA', '2026-08-10 11:57:00.000000');
 
 -- ---------------------------------------------------------------------------
 -- Comentarios de exemplo

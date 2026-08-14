@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Regras de negocio dos chamados.
@@ -122,7 +123,8 @@ public class ChamadoService {
                         + triagem.categoria().getRotulo()
                         + " / "
                         + triagem.prioridade().getRotulo(),
-                "CONFIANÇA " + triagem.confianca().name());
+                // Rotulo acentuado ("MÉDIA"), e nao o nome ASCII da constante.
+                "CONFIANÇA " + triagem.confianca().getRotulo().toUpperCase(Locale.ROOT));
 
         notificar(chamado, true);
 
