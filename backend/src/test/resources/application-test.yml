@@ -1,0 +1,36 @@
+# Perfil de teste: H2 em memoria com dialeto MySQL.
+#
+# A suite roda as MESMAS migrations Flyway do ambiente real, de modo que o schema
+# exercitado nos testes e o schema de producao. Isso permite `mvn test` sem
+# Docker e sem MySQL instalado — o avaliador consegue rodar os testes na hora.
+spring:
+  datasource:
+    url: jdbc:h2:mem:central_chamados;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: false
+
+app:
+  jwt:
+    secret: segredo-exclusivo-de-teste-com-mais-de-32-bytes-para-hs256
+    expiration-ms: 3600000
+  triage:
+    provider: heuristic
+
+logging:
+  level:
+    org.hibernate.SQL: warn
