@@ -29,6 +29,7 @@ Solução para o desafio técnico da **FADEX** — vaga de Analista de Desenvolv
 - [Tecnologias](#tecnologias)
 - [Testando a API](#testando-a-api)
 - [Triagem por IA](#triagem-por-ia-como-funciona-e-por-quê)
+- [Detecção de duplicados](#detecção-de-chamados-duplicados)
 - [Tempo real](#tempo-real)
 - [Arquitetura](#arquitetura)
 - [Modelo de dados](#modelo-de-dados)
@@ -70,7 +71,7 @@ docker compose up --build
 **Pré-requisitos:** JDK 21, Maven 3.9+, Node 20+, e um MySQL 8 acessível.
 
 ```bash
-# 1. Banco (ou use uma instância MySQL já existente)
+# 1. Banco do projeto, publicado no host em localhost:3307 pelo override local
 docker compose up -d mysql
 
 # 2. Backend  → http://localhost:8080
@@ -155,7 +156,7 @@ as demais requisições já o utilizam.
 ### curl
 
 <details open>
-<summary><strong>Fluxo completo em 6 comandos</strong></summary>
+<summary><strong>Fluxo completo em 7 comandos</strong></summary>
 
 ```bash
 # 1. Login como SOLICITANTE (guarda o token)
@@ -189,6 +190,14 @@ curl -N "http://localhost:8080/api/eventos/stream?token=$ADMIN"
 curl -s -X PATCH http://localhost:8080/api/chamados/1/triagem \
   -H "Authorization: Bearer $ADMIN" -H "Content-Type: application/json" \
   -d '{"categoria":"REDE","prioridade":"MEDIA"}'
+
+# 7. Detecção de duplicados — relate o mesmo incidente com outras palavras
+curl -s -X POST http://localhost:8080/api/chamados \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"titulo":"Compartilhamento de rede fora do ar",
+       "descricao":"O servidor de arquivos não abre em nenhuma máquina do setor e ninguém consegue trabalhar."}'
+# → possiveisDuplicados aponta o chamado do passo 2, com a similaridade em
+#   percentual e os termos que aproximaram os dois textos
 ```
 
 </details>
@@ -202,7 +211,8 @@ curl -s -X PATCH http://localhost:8080/api/chamados/1/triagem \
 | `GET` | `/api/auth/eu` | Usuário da sessão | autenticado |
 | `POST` | `/api/chamados` | Abre chamado **com triagem automática** | autenticado |
 | `GET` | `/api/chamados` | Lista com filtros e paginação | autenticado¹ |
-| `GET` | `/api/chamados/{id}` | Detalhe + triagem + histórico + comentários | autenticado¹ |
+| `GET` | `/api/chamados/{id}` | Detalhe + triagem + histórico + comentários + duplicados | autenticado¹ |
+| `GET` | `/api/chamados/{id}/similares` | Chamados que possivelmente são o mesmo incidente | autenticado¹ |
 | `PUT` | `/api/chamados/{id}` | Edita título e descrição | autenticado¹ |
 | `DELETE` | `/api/chamados/{id}` | Cancela (lógico) | autenticado¹ |
 | `PATCH` | `/api/chamados/{id}/status` | Avança o status | **ADMIN** |
@@ -279,6 +289,63 @@ na heurística local** — a abertura de um chamado nunca falha por indisponibil
 
 ---
 
+## Detecção de chamados duplicados
+
+Diferencial previsto no desafio ("detecção de chamados duplicados/similares"). Quando um serviço
+cai, a central recebe o mesmo incidente várias vezes em poucos minutos — e a equipe precisa
+perceber isso **antes** de abrir três frentes de trabalho para a mesma causa.
+
+Ao abrir um chamado, e no detalhe de qualquer chamado, a API devolve em `possiveisDuplicados` os
+registros que provavelmente relatam o mesmo problema:
+
+```json
+"possiveisDuplicados": [
+  {
+    "id": 12,
+    "titulo": "Impressora do 3º andar não imprime",
+    "status": "EM_ANDAMENTO",
+    "solicitante": { "nome": "João Pereira" },
+    "similaridade": 78,
+    "termosEmComum": ["impressora", "andar", "imprimir"]
+  }
+]
+```
+
+### Como a similaridade é calculada
+
+1. título e descrição são normalizados (minúsculas, sem acentuação) e quebrados em termos;
+2. **stopwords** de português e o jargão de abertura de chamado ("bom dia", "solicito", "por
+   favor") são descartados — sem isso, dois chamados sem nada em comum ficariam próximos apenas
+   por começarem igual;
+3. cada termo recebe um peso: **título vale 3, descrição vale 1** — a mesma ponderação da triagem,
+   pela mesma razão (o título nomeia o incidente, a descrição o contextualiza);
+4. a similaridade é o **cosseno** entre os dois vetores de termos, de 0 a 1. Acima de **0,35** o
+   chamado é apresentado como possível duplicata, no máximo 5 por consulta.
+
+O cosseno foi preferido ao índice de Jaccard porque normaliza pelo tamanho: um relato de uma linha
+e outro de um parágrafo sobre o mesmo problema continuam próximos, em vez de serem penalizados
+pela diferença de extensão.
+
+### Por que não embeddings
+
+Embeddings dariam mais alcance em paráfrases, ao custo de uma dependência externa em um caminho
+que roda **a cada abertura de chamado**. A escolha segue a mesma lógica da triagem heurística:
+determinístico, sem rede, sem chave de API, testável de verdade — e suficiente para o caso que
+realmente importa aqui, que é o mesmo incidente relatado por várias pessoas com praticamente as
+mesmas palavras. Trocar por embeddings é substituir `SimilaridadeTextual`, sem tocar no domínio.
+
+### Recorte de visibilidade
+
+A sugestão respeita **exatamente a mesma autorização da listagem**: o ADMIN compara com todos os
+chamados, o SOLICITANTE apenas com os próprios. Fosse diferente, a detecção viraria um canal
+lateral para ler o título e o autor de chamados de terceiros — a funcionalidade não pode furar a
+autorização que o resto do sistema aplica. Há teste automatizado para isso.
+
+Chamados **cancelados** ficam de fora (não há trabalho a consolidar com eles) e a busca é limitada
+aos últimos **60 dias**: um chamado de três meses atrás não é duplicata, é histórico.
+
+---
+
 ## Tempo real
 
 **Server-Sent Events** (`GET /api/eventos/stream`). O tráfego é unidirecional (servidor → painel),
@@ -318,6 +385,8 @@ backend/src/main/java/br/org/fadex/chamados/
 │                 HistoricoService · MetricasService
 ├── security/     JwtService · JwtAuthenticationFilter · UsuarioDetailsService
 ├── triage/       TriageProvider ← HeuristicTriageProvider · GeminiTriageProvider
+├── duplicados/   SimilaridadeTextual · DetectorDuplicados
+├── texto/        normalização e tokenização compartilhadas pela triagem e pelos duplicados
 ├── realtime/     SseEmitterRegistry · EventoRealtimePublisher
 ├── web/          Controllers + DTOs
 └── exception/    GlobalExceptionHandler · ApiError
@@ -384,17 +453,18 @@ Toda resposta de erro usa o mesmo formato `ApiError`
 cd backend && mvn test
 ```
 
-**92 testes**, rodando em **H2 no modo MySQL** — sem Docker e sem MySQL instalado. A suíte executa
+**115 testes**, rodando em **H2 no modo MySQL** — sem Docker e sem MySQL instalado. A suíte executa
 as **mesmas migrations Flyway** do ambiente real, com `ddl-auto=validate`: qualquer divergência
 entre uma coluna e o campo JPA correspondente derruba o build.
 
 | Suíte | Cobre |
 |---|---|
 | `AuthControllerTest` | cadastro, hash BCrypt, login, e-mail duplicado, token inválido/forjado, 401 |
-| `ChamadoControllerTest` | CRUD, filtros, paginação, permissões, fluxo de status, reabertura, cancelamento, revisão da IA, comentários |
-| `HeuristicTriageProviderTest` | categoria, prioridade, confiança, determinismo, acentuação, texto vazio |
+| `ChamadoControllerTest` | CRUD, filtros, paginação, permissões, fluxo de status, reabertura, cancelamento, revisão da IA, comentários, detecção de duplicados |
+| `HeuristicTriageProviderTest` | categoria, prioridade, incidente de segurança, confiança, determinismo, acentuação, texto vazio |
 | `MetricasETempoRealTest` | indicadores, escopo por papel, publicação de eventos, alerta ALTA, autenticação do SSE |
 | `StatusChamadoTest` | fluxo sequencial e estados terminais |
+| `SimilaridadeTextualTest` | pontuação, simetria, normalização, stopwords, termos em comum |
 | `SeedDemonstracaoTest` | valida a carga de demonstração em banco isolado |
 
 ---

@@ -23,7 +23,13 @@
   ],
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
   },
   "item": [
     {
@@ -46,14 +52,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"ana.souza@fadex.org.br\",\n  \"senha\": \"suporte123\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
@@ -71,47 +94,108 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"joao.pereira@fadex.org.br\",\n  \"senha\": \"suporte123\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
           "name": "Cadastrar solicitante",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nome\": \"Marina Castro\",\n  \"email\": \"marina.castro@fadex.org.br\",\n  \"senha\": \"senhaSegura1\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/auth/registrar", "host": ["{{baseUrl}}"], "path": ["api", "auth", "registrar"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/registrar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registrar"
+              ]
+            }
           }
         },
         {
           "name": "Login inválido (401)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"ana.souza@fadex.org.br\",\n  \"senha\": \"senha-errada\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
           "name": "Usuário da sessão",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/auth/eu", "host": ["{{baseUrl}}"], "path": ["api", "auth", "eu"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/eu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "eu"
+              ]
+            }
           }
         }
       ]
@@ -140,13 +224,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"titulo\": \"Impressora do 3º andar não está funcionando\",\n  \"descricao\": \"A impressora do 3º andar não imprime desde ontem. Aparece luz vermelha no painel e o setor inteiro está sem imprimir os empenhos do dia.\"\n}"
             },
             "description": "Categoria e prioridade NÃO são enviadas: quem as define é a triagem automática.",
-            "url": { "raw": "{{baseUrl}}/api/chamados", "host": ["{{baseUrl}}"], "path": ["api", "chamados"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados"
+              ]
+            }
           }
         },
         {
@@ -155,11 +253,22 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/chamados?page=0&size=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados"
+              ],
               "query": [
-                { "key": "page", "value": "0" },
-                { "key": "size", "value": "10" }
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
               ]
             }
           }
@@ -170,13 +279,30 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/chamados?status=ABERTO&prioridade=ALTA&categoria=HARDWARE&busca=impressora",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados"
+              ],
               "query": [
-                { "key": "status", "value": "ABERTO" },
-                { "key": "prioridade", "value": "ALTA" },
-                { "key": "categoria", "value": "HARDWARE" },
-                { "key": "busca", "value": "impressora" }
+                {
+                  "key": "status",
+                  "value": "ABERTO"
+                },
+                {
+                  "key": "prioridade",
+                  "value": "ALTA"
+                },
+                {
+                  "key": "categoria",
+                  "value": "HARDWARE"
+                },
+                {
+                  "key": "busca",
+                  "value": "impressora"
+                }
               ]
             }
           }
@@ -187,8 +313,33 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Chamados similares (possíveis duplicados)",
+          "request": {
+            "method": "GET",
+            "description": "Devolve os chamados que provavelmente relatam o mesmo incidente, do mais parecido para o menos, com a similaridade em pontos percentuais e os termos que aproximaram os textos. A mesma lista já vem embutida no detalhe, em `possiveisDuplicados`.\n\nADMIN compara com todos os chamados; SOLICITANTE apenas com os próprios.",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/similares",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}",
+                "similares"
+              ]
             }
           }
         },
@@ -196,15 +347,26 @@
           "name": "Editar chamado",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"titulo\": \"Impressora do 3º andar continua sem imprimir\",\n  \"descricao\": \"Atualizando: o problema persiste mesmo após reiniciar o equipamento.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}"
+              ]
             }
           }
         },
@@ -212,13 +374,28 @@
           "name": "Alterar status (ADMIN)",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"EM_ANDAMENTO\"\n}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EM_ANDAMENTO\"\n}"
+            },
             "description": "Fluxo sequencial ABERTO → EM_ANDAMENTO → RESOLVIDO → FECHADO. Pular etapas devolve 409.",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}",
+                "status"
+              ]
             }
           }
         },
@@ -226,12 +403,27 @@
           "name": "Atribuir responsável (ADMIN)",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"responsavelId\": 2\n}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"responsavelId\": 2\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/responsavel",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}", "responsavel"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}",
+                "responsavel"
+              ]
             }
           }
         },
@@ -242,8 +434,14 @@
             "description": "Cancelamento lógico: o chamado passa a CANCELADO e continua consultável.",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}"
+              ]
             }
           }
         }
@@ -258,8 +456,16 @@
             "method": "POST",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/triagem/aceitar",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}", "triagem", "aceitar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}",
+                "triagem",
+                "aceitar"
+              ]
             }
           }
         },
@@ -280,13 +486,28 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"categoria\": \"REDE\",\n  \"prioridade\": \"MEDIA\"\n}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria\": \"REDE\",\n  \"prioridade\": \"MEDIA\"\n}"
+            },
             "description": "A sugestão original da IA continua registrada, permitindo comparar as duas.",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/triagem",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}", "triagem"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}",
+                "triagem"
+              ]
             }
           }
         }
@@ -299,15 +520,27 @@
           "name": "Adicionar comentário",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"texto\": \"Recebido. Vou verificar o fusor ainda hoje pela manhã e retorno com um prazo.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/comentarios",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}", "comentarios"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}",
+                "comentarios"
+              ]
             }
           }
         },
@@ -317,8 +550,15 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/comentarios",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chamados", "{{chamadoId}}", "comentarios"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chamados",
+                "{{chamadoId}}",
+                "comentarios"
+              ]
             }
           }
         }
@@ -334,8 +574,14 @@
             "description": "ADMIN recebe os números de toda a operação; SOLICITANTE apenas os próprios.",
             "url": {
               "raw": "{{baseUrl}}/api/dashboard/metricas",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "metricas"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "metricas"
+              ]
             }
           }
         },
@@ -346,9 +592,20 @@
             "description": "Conexão SSE. O EventSource do navegador não envia cabeçalhos, então este endpoint também aceita o token por query param. Abra e, em outra aba, crie um chamado de prioridade ALTA para ver os eventos `chamado-criado`, `alerta-alta` e `metricas`.",
             "url": {
               "raw": "{{baseUrl}}/api/eventos/stream?token={{token}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "eventos", "stream"],
-              "query": [{ "key": "token", "value": "{{token}}" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "eventos",
+                "stream"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{token}}"
+                }
+              ]
             }
           }
         }
@@ -361,28 +618,64 @@
           "name": "Categorias",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/categorias", "host": ["{{baseUrl}}"], "path": ["api", "categorias"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categorias"
+              ]
+            }
           }
         },
         {
           "name": "Prioridades",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/prioridades", "host": ["{{baseUrl}}"], "path": ["api", "prioridades"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/prioridades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prioridades"
+              ]
+            }
           }
         },
         {
           "name": "Status",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/status", "host": ["{{baseUrl}}"], "path": ["api", "status"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "status"
+              ]
+            }
           }
         },
         {
           "name": "Responsáveis (ADMIN)",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/responsaveis", "host": ["{{baseUrl}}"], "path": ["api", "responsaveis"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/responsaveis",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "responsaveis"
+              ]
+            }
           }
         }
       ]
