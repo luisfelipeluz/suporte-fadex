@@ -10,6 +10,7 @@ import br.org.fadex.chamados.domain.Usuario;
 import br.org.fadex.chamados.exception.AcessoNegadoException;
 import br.org.fadex.chamados.exception.RecursoNaoEncontradoException;
 import br.org.fadex.chamados.exception.RegraDeNegocioException;
+import br.org.fadex.chamados.realtime.ChamadoAlteradoEvento;
 import br.org.fadex.chamados.repository.ChamadoRepository;
 import br.org.fadex.chamados.repository.ChamadoSpecifications;
 import br.org.fadex.chamados.repository.ComentarioRepository;
@@ -24,6 +25,7 @@ import br.org.fadex.chamados.web.dto.ComentarioResponse;
 import br.org.fadex.chamados.web.dto.CorrigirClassificacaoRequest;
 import br.org.fadex.chamados.web.dto.CriarChamadoRequest;
 import br.org.fadex.chamados.web.dto.PaginaResponse;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -47,18 +49,38 @@ public class ChamadoService {
     private final UsuarioRepository usuarioRepository;
     private final HistoricoService historicoService;
     private final TriageService triageService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ChamadoService(
             ChamadoRepository chamadoRepository,
             ComentarioRepository comentarioRepository,
             UsuarioRepository usuarioRepository,
             HistoricoService historicoService,
-            TriageService triageService) {
+            TriageService triageService,
+            ApplicationEventPublisher eventPublisher) {
         this.chamadoRepository = chamadoRepository;
         this.comentarioRepository = comentarioRepository;
         this.usuarioRepository = usuarioRepository;
         this.historicoService = historicoService;
         this.triageService = triageService;
+        this.eventPublisher = eventPublisher;
+    }
+
+    /**
+     * Anuncia a alteracao para o mecanismo de tempo real.
+     *
+     * <p>Publica um evento de aplicacao em vez de chamar o SSE diretamente: quem
+     * escuta so age depois do commit, evitando notificar o painel sobre uma
+     * mudanca que ainda pode sofrer rollback.
+     */
+    private void notificar(Chamado chamado, boolean criacao) {
+        ChamadoResumoResponse resumo = ChamadoResumoResponse.de(chamado);
+
+        eventPublisher.publishEvent(
+                criacao
+                        ? ChamadoAlteradoEvento.criado(
+                                resumo, chamado.getPrioridade().exigeAlertaImediato())
+                        : ChamadoAlteradoEvento.atualizado(resumo));
     }
 
     // =========================================================================
@@ -101,6 +123,8 @@ public class ChamadoService {
                         + " / "
                         + triagem.prioridade().getRotulo(),
                 "CONFIANÇA " + triagem.confianca().name());
+
+        notificar(chamado, true);
 
         return montarDetalhe(chamado);
     }
@@ -161,6 +185,8 @@ public class ChamadoService {
                 TipoEvento.CHAMADO_ATUALIZADO,
                 usuario.getNome() + " editou o conteúdo do chamado");
 
+        notificar(chamado, false);
+
         return montarDetalhe(chamado);
     }
 
@@ -186,6 +212,8 @@ public class ChamadoService {
                 admin,
                 TipoEvento.STATUS_ALTERADO,
                 "Status alterado para: " + novoStatus.getRotulo());
+
+        notificar(chamado, false);
 
         return montarDetalhe(chamado);
     }
@@ -213,6 +241,8 @@ public class ChamadoService {
                 TipoEvento.RESPONSAVEL_ATRIBUIDO,
                 responsavel.getNome() + " assumiu o chamado");
 
+        notificar(chamado, false);
+
         return montarDetalhe(chamado);
     }
 
@@ -233,6 +263,8 @@ public class ChamadoService {
                 usuario,
                 TipoEvento.CHAMADO_CANCELADO,
                 "Chamado cancelado por " + usuario.getNome());
+
+        notificar(chamado, false);
     }
 
     // =========================================================================
@@ -251,6 +283,8 @@ public class ChamadoService {
                 admin,
                 TipoEvento.CLASSIFICACAO_ACEITA,
                 "Classificação da IA aceita por " + admin.getNome());
+
+        notificar(chamado, false);
 
         return montarDetalhe(chamado);
     }
@@ -274,6 +308,8 @@ public class ChamadoService {
                         + requisicao.prioridade().getRotulo()
                         + " por "
                         + admin.getNome());
+
+        notificar(chamado, false);
 
         return montarDetalhe(chamado);
     }
