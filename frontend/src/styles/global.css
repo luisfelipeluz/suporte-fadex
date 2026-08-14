@@ -253,3 +253,45 @@ table.tabela tbody tr:hover {
     padding: var(--sp4);
   }
 }
+
+/* --- Entrada (tela dividida) ---------------------------------------------- */
+
+.login-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+.login-marca {
+  background: var(--ink);
+  color: #fff;
+  padding: 56px 56px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.login-form {
+  background: var(--sf);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* Abaixo de 900px a coluna de apresentação sairia empurrando o formulário para
+   fora da dobra — o oposto do que ela existe para fazer. */
+@media (max-width: 900px) {
+  .login-split {
+    grid-template-columns: 1fr;
+  }
+
+  .login-marca {
+    display: none;
+  }
+
+  .login-form {
+    padding: 32px 20px;
+  }
+}
