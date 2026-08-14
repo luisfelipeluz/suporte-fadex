@@ -5,15 +5,22 @@ import java.util.Optional;
 /**
  * Estados do ciclo de vida de um chamado.
  *
- * <p>O fluxo previsto e estritamente sequencial:
+ * <p>O fluxo previsto e sequencial, e caminha nos dois sentidos:
  *
  * <pre>
- *   ABERTO -> EM_ANDAMENTO -> RESOLVIDO -> FECHADO
+ *   ABERTO &lt;-> EM_ANDAMENTO &lt;-> RESOLVIDO -> FECHADO
  * </pre>
+ *
+ * <p>O retrocesso existe porque "resolvido" e uma afirmacao que pode se provar
+ * falsa: quando o atendimento nao resolveu o que foi pedido, o chamado volta uma
+ * etapa em vez de ser fechado ou duplicado. O movimento e sempre de uma etapa por
+ * vez, em qualquer direcao — nao ha salto.
  *
  * <p>{@link #FECHADO} e {@link #CANCELADO} sao estados terminais. A regra de negocio
  * "chamado fechado nao pode ser reaberto" e expressa aqui, em um unico lugar, e
  * aplicada pelo servico de dominio — nunca apenas escondendo um botao na interface.
+ * E por isso que {@link #FECHADO} nao tem etapa anterior: o retorno para
+ * {@link #RESOLVIDO} seria exatamente a reabertura que a regra proibe.
  */
 public enum StatusChamado {
 
@@ -67,12 +74,39 @@ public enum StatusChamado {
     }
 
     /**
+     * Estado imediatamente anterior do fluxo, para onde o chamado pode retornar.
+     *
+     * <p>Vazio na primeira etapa e nos estados terminais: de {@link #FECHADO} nao
+     * ha volta, e {@link #CANCELADO} e saida do fluxo, nao uma etapa dele.
+     */
+    public Optional<StatusChamado> anterior() {
+        return switch (this) {
+            case EM_ANDAMENTO -> Optional.of(ABERTO);
+            case RESOLVIDO -> Optional.of(EM_ANDAMENTO);
+            case ABERTO, FECHADO, CANCELADO -> Optional.empty();
+        };
+    }
+
+    /**
      * Indica se a transicao deste estado para {@code destino} e valida.
      *
-     * <p>Somente o avanco para o proximo estado do fluxo e permitido: nao ha
-     * retrocesso, nem salto de etapas, nem reabertura de chamado encerrado.
+     * <p>Vale o avanco para a proxima etapa e o retorno para a anterior. O que
+     * continua proibido: saltar etapas, reabrir chamado encerrado e mexer em
+     * chamado cancelado.
      */
     public boolean permiteTransicaoPara(StatusChamado destino) {
-        return destino != null && proximo().filter(destino::equals).isPresent();
+        return destino != null
+                && (proximo().filter(destino::equals).isPresent()
+                        || anterior().filter(destino::equals).isPresent());
+    }
+
+    /**
+     * Indica se ir para {@code destino} e um retorno no fluxo.
+     *
+     * <p>Distingue as duas direcoes para que o historico registre o retorno como
+     * o evento que ele e, e nao como mais um avanco de status.
+     */
+    public boolean isRetrocessoPara(StatusChamado destino) {
+        return destino != null && anterior().filter(destino::equals).isPresent();
     }
 }

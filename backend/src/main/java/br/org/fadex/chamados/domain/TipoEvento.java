@@ -14,6 +14,10 @@ public enum TipoEvento {
     CLASSIFICACAO_CORRIGIDA("#b45309"),
     RESPONSAVEL_ATRIBUIDO("#64748b"),
     STATUS_ALTERADO("#2563eb"),
+
+    /** Retorno para a etapa anterior do fluxo; cor propria para destacar-se do avanco. */
+    STATUS_RETROCEDIDO("#b45309"),
+
     COMENTARIO_ADICIONADO("#64748b"),
     CHAMADO_ATUALIZADO("#64748b"),
     CHAMADO_CANCELADO("#94a3b8");

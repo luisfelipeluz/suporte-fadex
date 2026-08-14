@@ -31,6 +31,12 @@ public record ChamadoDetalheResponse(
         @Schema(description = "Próximo status permitido pelo fluxo; nulo se encerrado")
         StatusChamado proximoStatus,
 
+        @Schema(
+                description =
+                        "Status anterior do fluxo, para onde o chamado pode retornar; nulo na "
+                                + "primeira etapa e nos estados encerrados")
+        StatusChamado statusAnterior,
+
         @Schema(description = "Indica que o chamado está encerrado e não admite mais transições")
         boolean encerrado,
 
@@ -68,6 +74,7 @@ public record ChamadoDetalheResponse(
                 chamado.getAtualizadoEm(),
                 TriagemResponse.de(chamado),
                 chamado.getStatus().proximo().orElse(null),
+                chamado.getStatus().anterior().orElse(null),
                 chamado.getStatus().isEncerrado(),
                 historico,
                 comentarios,

@@ -199,11 +199,17 @@ public class ChamadoController {
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Altera o status do chamado (ADMIN)",
+            summary = "Move o status do chamado no fluxo (ADMIN)",
             description =
                     """
-                    O fluxo é sequencial: ABERTO → EM_ANDAMENTO → RESOLVIDO → FECHADO.
-                    Chamados FECHADOS não podem ser reabertos — a tentativa devolve 409.
+                    O fluxo é sequencial e caminha nos dois sentidos, uma etapa por vez:
+                    ABERTO ↔ EM_ANDAMENTO ↔ RESOLVIDO → FECHADO.
+
+                    O retorno serve para quando o atendimento não resolveu o que foi pedido —
+                    de RESOLVIDO o chamado volta para EM_ANDAMENTO e o histórico registra o
+                    evento `STATUS_RETROCEDIDO` com o nome de quem fez a movimentação.
+
+                    Saltar etapas devolve 409, e chamados FECHADOS não podem ser reabertos.
                     """)
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Status alterado"),

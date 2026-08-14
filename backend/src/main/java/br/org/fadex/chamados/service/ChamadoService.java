@@ -197,10 +197,20 @@ public class ChamadoService {
         return montarDetalhe(chamado, usuario);
     }
 
-    /** Avanco de status. Exclusivo do ADMIN. */
+    /**
+     * Movimentacao de status, para a frente ou de volta. Exclusiva do ADMIN.
+     *
+     * <p>O historico distingue as duas direcoes e nomeia quem fez a mudanca: um
+     * retorno de RESOLVIDO para EM_ANDAMENTO significa que o atendimento nao
+     * resolveu o problema, e quem precisa auditar isso depois tem de conseguir ver
+     * de onde o chamado voltou e por ordem de quem.
+     */
     @Transactional
     public ChamadoDetalheResponse alterarStatus(Long id, StatusChamado novoStatus, Usuario admin) {
         Chamado chamado = buscar(id);
+
+        StatusChamado origem = chamado.getStatus();
+        boolean retorno = origem.isRetrocessoPara(novoStatus);
 
         chamado.alterarStatus(novoStatus);
 
@@ -214,11 +224,24 @@ public class ChamadoService {
                     admin.getNome() + " assumiu o chamado");
         }
 
-        historicoService.registrar(
-                chamado,
-                admin,
-                TipoEvento.STATUS_ALTERADO,
-                "Status alterado para: " + novoStatus.getRotulo());
+        if (retorno) {
+            historicoService.registrar(
+                    chamado,
+                    admin,
+                    TipoEvento.STATUS_RETROCEDIDO,
+                    admin.getNome()
+                            + " retornou o chamado de "
+                            + origem.getRotulo()
+                            + " para "
+                            + novoStatus.getRotulo(),
+                    "RETORNO");
+        } else {
+            historicoService.registrar(
+                    chamado,
+                    admin,
+                    TipoEvento.STATUS_ALTERADO,
+                    admin.getNome() + " moveu o chamado para " + novoStatus.getRotulo());
+        }
 
         notificar(chamado, false);
 

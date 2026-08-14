@@ -29,10 +29,24 @@ class StatusChamadoTest {
         }
 
         @Test
-        @DisplayName("nao permite retroceder")
-        void naoPermiteRetroceder() {
+        @DisplayName("retorna uma etapa: RESOLVIDO -> EM_ANDAMENTO -> ABERTO")
+        void retornaUmaEtapaPorVez() {
+            assertThat(StatusChamado.RESOLVIDO.permiteTransicaoPara(StatusChamado.EM_ANDAMENTO)).isTrue();
+            assertThat(StatusChamado.EM_ANDAMENTO.permiteTransicaoPara(StatusChamado.ABERTO)).isTrue();
+        }
+
+        @Test
+        @DisplayName("nao permite pular etapas no retorno")
+        void naoPulaEtapasNoRetorno() {
             assertThat(StatusChamado.RESOLVIDO.permiteTransicaoPara(StatusChamado.ABERTO)).isFalse();
-            assertThat(StatusChamado.EM_ANDAMENTO.permiteTransicaoPara(StatusChamado.ABERTO)).isFalse();
+        }
+
+        @Test
+        @DisplayName("distingue retorno de avanco")
+        void distingueRetornoDeAvanco() {
+            assertThat(StatusChamado.RESOLVIDO.isRetrocessoPara(StatusChamado.EM_ANDAMENTO)).isTrue();
+            assertThat(StatusChamado.EM_ANDAMENTO.isRetrocessoPara(StatusChamado.RESOLVIDO)).isFalse();
+            assertThat(StatusChamado.ABERTO.isRetrocessoPara(StatusChamado.EM_ANDAMENTO)).isFalse();
         }
     }
 
@@ -74,6 +88,16 @@ class StatusChamadoTest {
             assertThat(StatusChamado.FECHADO.proximo()).isEmpty();
             assertThat(StatusChamado.CANCELADO.proximo()).isEmpty();
             assertThat(StatusChamado.ABERTO.proximo()).contains(StatusChamado.EM_ANDAMENTO);
+        }
+
+        @Test
+        @DisplayName("anterior() e vazio na primeira etapa e nos terminais")
+        void anteriorVazioOndeNaoHaVolta() {
+            assertThat(StatusChamado.ABERTO.anterior()).isEmpty();
+            // Voltar de FECHADO seria a reabertura que a regra de negocio proibe.
+            assertThat(StatusChamado.FECHADO.anterior()).isEmpty();
+            assertThat(StatusChamado.CANCELADO.anterior()).isEmpty();
+            assertThat(StatusChamado.RESOLVIDO.anterior()).contains(StatusChamado.EM_ANDAMENTO);
         }
     }
 }

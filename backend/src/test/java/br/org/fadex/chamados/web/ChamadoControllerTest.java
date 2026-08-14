@@ -267,6 +267,52 @@ class ChamadoControllerTest {
         }
 
         @Test
+        @DisplayName("ADMIN retorna o chamado para a etapa anterior")
+        void adminRetornaParaEtapaAnterior() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            avancarStatus(id, "EM_ANDAMENTO");
+            avancarStatus(id, "RESOLVIDO");
+
+            mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenAdmin)
+                            .content(json(Map.of("status", "EM_ANDAMENTO"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("EM_ANDAMENTO"))
+                    .andExpect(jsonPath("$.statusAnterior").value("ABERTO"))
+                    .andExpect(jsonPath("$.proximoStatus").value("RESOLVIDO"));
+        }
+
+        @Test
+        @DisplayName("o retorno fica no histórico, com o nome de quem moveu")
+        void retornoRegistradoNoHistorico() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            avancarStatus(id, "EM_ANDAMENTO");
+            avancarStatus(id, "RESOLVIDO");
+            avancarStatus(id, "EM_ANDAMENTO");
+
+            mockMvc.perform(autenticado(get("/api/chamados/" + id), tokenAdmin))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.historico[-1:].tipo").value("STATUS_RETROCEDIDO"))
+                    .andExpect(jsonPath("$.historico[-1:].etiqueta").value("RETORNO"))
+                    .andExpect(jsonPath("$.historico[-1:].autor").value("Ana Souza"))
+                    .andExpect(jsonPath("$.historico[-1:].descricao")
+                            .value("Ana Souza retornou o chamado de Resolvido para Em andamento"));
+        }
+
+        @Test
+        @DisplayName("não permite pular etapas no retorno (409)")
+        void naoPulaEtapasNoRetorno() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            avancarStatus(id, "EM_ANDAMENTO");
+            avancarStatus(id, "RESOLVIDO");
+
+            mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenAdmin)
+                            .content(json(Map.of("status", "ABERTO"))))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.mensagem")
+                            .value(org.hamcrest.Matchers.containsString("Transição de status inválida")));
+        }
+
+        @Test
         @DisplayName("chamado FECHADO não pode ser reaberto (409)")
         void chamadoFechadoNaoReabre() throws Exception {
             long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);

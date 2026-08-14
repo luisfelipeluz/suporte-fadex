@@ -193,10 +193,11 @@ public class Chamado {
     }
 
     /**
-     * Avanca o chamado no fluxo de status.
+     * Move o chamado no fluxo de status, para a frente ou para tras.
      *
      * <p>Rejeita reabertura de chamado encerrado e qualquer transicao fora da
-     * sequencia ABERTO, EM_ANDAMENTO, RESOLVIDO, FECHADO.
+     * sequencia ABERTO, EM_ANDAMENTO, RESOLVIDO, FECHADO — inclusive salto de
+     * etapas no retorno.
      */
     public void alterarStatus(StatusChamado novoStatus) {
         if (status == StatusChamado.FECHADO) {
@@ -210,10 +211,17 @@ public class Chamado {
                     "O chamado já está com o status " + status.getRotulo().toLowerCase() + ".");
         }
         if (!status.permiteTransicaoPara(novoStatus)) {
-            String esperado = status.proximo().map(StatusChamado::getRotulo).orElse("nenhum");
+            String avanco = status.proximo().map(StatusChamado::getRotulo).orElse(null);
+            String retorno = status.anterior().map(StatusChamado::getRotulo).orElse(null);
+
+            String permitido =
+                    retorno == null
+                            ? "avançar para " + avanco
+                            : "avançar para " + avanco + " ou retornar para " + retorno;
+
             throw new RegraDeNegocioException(
                     "Transição de status inválida: de " + status.getRotulo()
-                            + " o chamado só pode avançar para " + esperado + ".");
+                            + " o chamado só pode " + permitido + ".");
         }
         this.status = novoStatus;
     }
