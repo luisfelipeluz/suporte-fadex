@@ -48,16 +48,15 @@ export function AppShell() {
 
   const abertos = metricas?.porStatus.ABERTO ?? 0;
 
+  // A abertura de chamado nao entra no menu: a listagem ja traz o botao, e ele
+  // fica ao lado da fila que a pessoa acabou de olhar — que e onde a vontade de
+  // abrir um chamado costuma aparecer. A rota continua existindo.
   const itens = admin
     ? [
         { para: '/dashboard', rotulo: 'Dashboard', contador: null },
         { para: '/chamados', rotulo: 'Chamados', contador: abertos },
-        { para: '/chamados/novo', rotulo: 'Novo chamado', contador: null },
       ]
-    : [
-        { para: '/chamados', rotulo: 'Meus chamados', contador: abertos },
-        { para: '/chamados/novo', rotulo: 'Novo chamado', contador: null },
-      ];
+    : [{ para: '/chamados', rotulo: 'Meus chamados', contador: abertos }];
 
   const conexaoAtual = CORES_CONEXAO[conexao];
 
