@@ -11,6 +11,7 @@ import type {
 } from '../api/tipos';
 import { useAuth } from '../auth/AuthContext';
 import { OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
+import { Icone } from '../components/Icone';
 import { EstadoErro, EstadoVazio, EsqueletoLinhas } from '../components/Estados';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa, ROTULO_PRIORIDADE } from '../utils/formato';
@@ -136,7 +137,8 @@ export function ListaChamados() {
           className="btn btn-primary"
           onClick={() => navegar('/chamados/novo')}
         >
-          + Novo chamado
+          <Icone nome="mais" tamanho={15} traco={2.2} />
+          Novo chamado
         </button>
       </div>
 
@@ -155,13 +157,22 @@ export function ListaChamados() {
             <label className="label" htmlFor="busca">
               Buscar
             </label>
-            <input
-              id="busca"
-              className="input"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Título, descrição ou número"
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Icone
+                nome="busca"
+                tamanho={15}
+                cor="#94a3b8"
+                style={{ position: 'absolute', left: 11, pointerEvents: 'none' }}
+              />
+              <input
+                id="busca"
+                className="input"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar por título, número ou solicitante"
+                style={{ paddingLeft: 34 }}
+              />
+            </div>
           </div>
 
           <div className="field">

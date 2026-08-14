@@ -23,6 +23,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa, ICONE_STATUS, ROTULO_STATUS } from '../utils/formato';
 import { Avatar, CORES_STATUS, PriorityBadge } from './Badges';
+import { Icone } from './Icone';
 import { EstadoErro } from './Estados';
 import { useToasts } from './Toasts';
 
@@ -477,7 +478,7 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
                                       onClick={() => mover(c, anterior)}
                                       style={{ padding: '2px 8px' }}
                                     >
-                                      <span aria-hidden="true">←</span>
+                                      <Icone nome="setaEsquerda" tamanho={14} />
                                       <span className="sr-only">
                                         Retornar chamado #{c.id} para {ROTULO_STATUS[anterior]}
                                       </span>
@@ -493,7 +494,7 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
                                       onClick={() => mover(c, proximo)}
                                       style={{ padding: '2px 8px' }}
                                     >
-                                      <span aria-hidden="true">→</span>
+                                      <Icone nome="setaDireita" tamanho={14} />
                                       <span className="sr-only">
                                         Mover chamado #{c.id} para {ROTULO_STATUS[proximo]}
                                       </span>

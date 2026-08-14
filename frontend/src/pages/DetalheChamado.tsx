@@ -238,8 +238,18 @@ export function DetalheChamado() {
               style={{ borderColor: 'var(--md)', background: 'var(--mdl)' }}
               aria-label="Possíveis chamados duplicados"
             >
-              <h2 style={{ margin: '0 0 4px', fontSize: 15, color: 'var(--md)' }}>
-                ⧉ Possíveis duplicados
+              <h2
+                style={{
+                  margin: '0 0 4px',
+                  fontSize: 15,
+                  color: 'var(--md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <Icone nome="duplicado" tamanho={16} traco={1.8} />
+                Possíveis duplicados
               </h2>
               <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--ink2)' }}>
                 {chamado.possiveisDuplicados.length === 1
@@ -393,7 +403,7 @@ export function DetalheChamado() {
                         )
                       }
                     >
-                      <span aria-hidden="true">←</span> Retornar para{' '}
+                      <Icone nome="setaEsquerda" tamanho={14} /> Retornar para{' '}
                       {ROTULO_STATUS[chamado.statusAnterior]}
                     </button>
                   )}

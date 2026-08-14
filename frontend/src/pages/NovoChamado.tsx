@@ -276,9 +276,13 @@ export function NovoChamado() {
                   fontWeight: 800,
                   color: 'var(--md)',
                   letterSpacing: '0.03em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
-                ⧉ POSSÍVEL DUPLICADO
+                <Icone nome="duplicado" tamanho={14} traco={1.8} />
+                POSSÍVEL DUPLICADO
               </p>
               <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--ink2)', lineHeight: 1.6 }}>
                 {resultado.possiveisDuplicados.length === 1

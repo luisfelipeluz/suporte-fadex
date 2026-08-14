@@ -6,6 +6,7 @@ import type { ChamadoResumo, Metricas, Prioridade, StatusChamado } from '../api/
 import { useAuth } from '../auth/AuthContext';
 import { OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
 import { EstadoErro, EstadoVazio, EsqueletoLinhas } from '../components/Estados';
+import { Icone } from '../components/Icone';
 import { QuadroKanban } from '../components/QuadroKanban';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa, percentual } from '../utils/formato';
@@ -156,7 +157,7 @@ export function Dashboard() {
             onClick={() => setKanbanAberto(true)}
             title="Abrir o quadro Kanban do fluxo de chamados"
           >
-            <span aria-hidden="true">▤</span> Kanban
+            <Icone nome="colunas" tamanho={15} traco={1.9} /> Kanban
           </button>
         </div>
       </div>

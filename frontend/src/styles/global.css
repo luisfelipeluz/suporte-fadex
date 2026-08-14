@@ -205,6 +205,10 @@ select {
 
 table.tabela {
   width: 100%;
+  /* Sem a largura minima as colunas espremem ate o titulo quebrar em uma
+     palavra por linha. Com ela, o wrapper rola na horizontal — que e como o
+     design trata a tabela larga. */
+  min-width: 1040px;
   border-collapse: collapse;
   font-size: 14px;
 }
