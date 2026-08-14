@@ -1,0 +1,391 @@
+{
+  "info": {
+    "name": "Central de Chamados FADEX",
+    "description": "Coleção de requisições da API da Central de Chamados com Triagem Inteligente.\n\n## Como usar\n\n1. Suba a aplicação com `docker compose up --build`.\n2. Rode **Autenticação → Login (ADMIN)**. O token é salvo automaticamente na variável de coleção `token` pelo script de teste da requisição.\n3. As demais requisições já usam `{{token}}` no cabeçalho `Authorization`.\n\nPara testar o perfil SOLICITANTE, rode **Login (SOLICITANTE)** e repita as chamadas: a API passa a devolver apenas os chamados daquele usuário, e as operações administrativas respondem 403.\n\n## Credenciais de teste\n\n| Papel | E-mail | Senha |\n|---|---|---|\n| ADMIN | ana.souza@fadex.org.br | suporte123 |\n| SOLICITANTE | joao.pereira@fadex.org.br | suporte123 |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "chamadoId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const dados = pm.response.json();",
+                  "pm.collectionVariables.set('token', dados.token);",
+                  "pm.test('login devolve token', () => pm.expect(dados.token).to.be.a('string'));",
+                  "pm.test('papel é ADMIN', () => pm.expect(dados.usuario.papel).to.eql('ADMIN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana.souza@fadex.org.br\",\n  \"senha\": \"suporte123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (SOLICITANTE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const dados = pm.response.json();",
+                  "pm.collectionVariables.set('token', dados.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao.pereira@fadex.org.br\",\n  \"senha\": \"suporte123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Cadastrar solicitante",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Marina Castro\",\n  \"email\": \"marina.castro@fadex.org.br\",\n  \"senha\": \"senhaSegura1\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/registrar", "host": ["{{baseUrl}}"], "path": ["api", "auth", "registrar"] }
+          }
+        },
+        {
+          "name": "Login inválido (401)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana.souza@fadex.org.br\",\n  \"senha\": \"senha-errada\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Usuário da sessão",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/auth/eu", "host": ["{{baseUrl}}"], "path": ["api", "auth", "eu"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chamados",
+      "item": [
+        {
+          "name": "Abrir chamado (triagem automática)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const dados = pm.response.json();",
+                  "pm.collectionVariables.set('chamadoId', dados.id);",
+                  "pm.test('a IA sugeriu categoria e prioridade', () => {",
+                  "  pm.expect(dados.triagem.categoriaSugerida).to.not.be.null;",
+                  "  pm.expect(dados.triagem.prioridadeSugerida).to.not.be.null;",
+                  "});",
+                  "pm.test('origem inicial é IA', () => pm.expect(dados.triagem.origem).to.eql('IA'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Impressora do 3º andar não está funcionando\",\n  \"descricao\": \"A impressora do 3º andar não imprime desde ontem. Aparece luz vermelha no painel e o setor inteiro está sem imprimir os empenhos do dia.\"\n}"
+            },
+            "description": "Categoria e prioridade NÃO são enviadas: quem as define é a triagem automática.",
+            "url": { "raw": "{{baseUrl}}/api/chamados", "host": ["{{baseUrl}}"], "path": ["api", "chamados"] }
+          }
+        },
+        {
+          "name": "Listar chamados",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar com filtros",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados?status=ABERTO&prioridade=ALTA&categoria=HARDWARE&busca=impressora",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados"],
+              "query": [
+                { "key": "status", "value": "ABERTO" },
+                { "key": "prioridade", "value": "ALTA" },
+                { "key": "categoria", "value": "HARDWARE" },
+                { "key": "busca", "value": "impressora" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detalhar chamado",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Editar chamado",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Impressora do 3º andar continua sem imprimir\",\n  \"descricao\": \"Atualizando: o problema persiste mesmo após reiniciar o equipamento.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Alterar status (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"EM_ANDAMENTO\"\n}" },
+            "description": "Fluxo sequencial ABERTO → EM_ANDAMENTO → RESOLVIDO → FECHADO. Pular etapas devolve 409.",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Atribuir responsável (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"responsavelId\": 2\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/responsavel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}", "responsavel"]
+            }
+          }
+        },
+        {
+          "name": "Cancelar chamado",
+          "request": {
+            "method": "DELETE",
+            "description": "Cancelamento lógico: o chamado passa a CANCELADO e continua consultável.",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Triagem por IA",
+      "item": [
+        {
+          "name": "Aceitar sugestão da IA (ADMIN)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/triagem/aceitar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}", "triagem", "aceitar"]
+            }
+          }
+        },
+        {
+          "name": "Corrigir classificação (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const dados = pm.response.json();",
+                  "pm.test('origem passa a MANUAL', () => pm.expect(dados.triagem.origem).to.eql('MANUAL'));",
+                  "pm.test('a sugestão original é preservada', () => pm.expect(dados.triagem.categoriaSugerida).to.not.be.null);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"categoria\": \"REDE\",\n  \"prioridade\": \"MEDIA\"\n}" },
+            "description": "A sugestão original da IA continua registrada, permitindo comparar as duas.",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/triagem",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}", "triagem"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comentários",
+      "item": [
+        {
+          "name": "Adicionar comentário",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"Recebido. Vou verificar o fusor ainda hoje pela manhã e retorno com um prazo.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/comentarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}", "comentarios"]
+            }
+          }
+        },
+        {
+          "name": "Listar comentários",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/comentarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chamados", "{{chamadoId}}", "comentarios"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Indicadores e tempo real",
+      "item": [
+        {
+          "name": "Métricas do dashboard",
+          "request": {
+            "method": "GET",
+            "description": "ADMIN recebe os números de toda a operação; SOLICITANTE apenas os próprios.",
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/metricas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "metricas"]
+            }
+          }
+        },
+        {
+          "name": "Stream de eventos (SSE)",
+          "request": {
+            "method": "GET",
+            "description": "Conexão SSE. O EventSource do navegador não envia cabeçalhos, então este endpoint também aceita o token por query param. Abra e, em outra aba, crie um chamado de prioridade ALTA para ver os eventos `chamado-criado`, `alerta-alta` e `metricas`.",
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos/stream?token={{token}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "eventos", "stream"],
+              "query": [{ "key": "token", "value": "{{token}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Referências",
+      "item": [
+        {
+          "name": "Categorias",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/categorias", "host": ["{{baseUrl}}"], "path": ["api", "categorias"] }
+          }
+        },
+        {
+          "name": "Prioridades",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/prioridades", "host": ["{{baseUrl}}"], "path": ["api", "prioridades"] }
+          }
+        },
+        {
+          "name": "Status",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/status", "host": ["{{baseUrl}}"], "path": ["api", "status"] }
+          }
+        },
+        {
+          "name": "Responsáveis (ADMIN)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/responsaveis", "host": ["{{baseUrl}}"], "path": ["api", "responsaveis"] }
+          }
+        }
+      ]
+    }
+  ]
+}
