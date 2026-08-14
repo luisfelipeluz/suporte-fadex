@@ -34,6 +34,7 @@ class HeuristicTriageProviderTest {
             "Solicitação de acesso ao e-mail, Novo colaborador precisa de caixa de e-mail institucional., ACESSO",
             "Reset de senha do portal, O link de recuperação de senha não chega., ACESSO",
             "Erro ao acessar sistema financeiro, O módulo de pagamentos retorna erro 500., SISTEMAS",
+            "O site caiu, O site institucional parou de responder., SISTEMAS",
             "Falha no sistema de folha, O relatório de folha fecha com divergência de valores., SISTEMAS",
             "Instalar leitor de PDF assinável, Preciso de um leitor de PDF para assinar termos., SOFTWARE",
             "Planilha travando ao abrir, A planilha congela ao abrir as abas de anexos., SOFTWARE"
@@ -101,6 +102,32 @@ class HeuristicTriageProviderTest {
                             "Preciso de permissão na pasta do projeto de extensão.");
 
             assertThat(resultado.prioridade()).isEqualTo(Prioridade.BAIXA);
+        }
+
+        @Test
+        @DisplayName("suspeita de invasão resulta em ALTA mesmo sem sinal de indisponibilidade")
+        void incidenteDeSegurancaResultaEmAlta() {
+            // Nenhuma expressao de bloqueio aparece neste texto: o trabalho pode
+            // seguir normalmente e ainda assim o caso e urgente.
+            TriageResult resultado =
+                    classificar(
+                            "O sistema foi invadido",
+                            "Invadiram o banco de dados e copiaram os registros.");
+
+            assertThat(resultado.categoria()).isEqualTo(Categoria.SISTEMAS);
+            assertThat(resultado.prioridade()).isEqualTo(Prioridade.ALTA);
+            assertThat(resultado.justificativa()).contains("incidente de segurança");
+        }
+
+        @ParameterizedTest(name = "\"{0}\" -> ALTA")
+        @CsvSource({
+            "Suspeita de phishing, Vários colaboradores receberam um e-mail pedindo senha.",
+            "Ransomware na estação do financeiro, Os arquivos foram criptografados e há um pedido de resgate.",
+            "Vazamento de dados de convênios, Dados expostos em uma pasta pública."
+        })
+        @DisplayName("outros indícios de segurança também sustentam prioridade ALTA")
+        void outrosIndiciosDeSeguranca(String titulo, String descricao) {
+            assertThat(classificar(titulo, descricao).prioridade()).isEqualTo(Prioridade.ALTA);
         }
 
         @Test

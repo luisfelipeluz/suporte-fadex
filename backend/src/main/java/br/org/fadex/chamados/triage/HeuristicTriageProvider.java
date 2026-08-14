@@ -3,14 +3,13 @@ package br.org.fadex.chamados.triage;
 import br.org.fadex.chamados.domain.Categoria;
 import br.org.fadex.chamados.domain.Confianca;
 import br.org.fadex.chamados.domain.Prioridade;
+import br.org.fadex.chamados.texto.Texto;
 import org.springframework.stereotype.Component;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -44,9 +43,10 @@ import java.util.regex.Pattern;
  *   <li>cada categoria acumula pontos pelos termos de seu lexico encontrados —
  *       ocorrencias no titulo pesam mais que na descricao, porque o titulo tende a
  *       nomear o problema;
- *   <li>a prioridade vem de tres familias de sinais: bloqueio total, degradacao e
- *       rotina; termos de amplitude ("setor inteiro") elevam um nivel, pois o mesmo
- *       defeito e mais grave quando atinge muitas pessoas;
+ *   <li>a prioridade vem de familias de sinais: incidente de seguranca e bloqueio
+ *       total levam a ALTA, degradacao leva a MEDIA e a ausencia de sinais
+ *       caracteriza rotina; termos de amplitude ("setor inteiro") elevam um nivel,
+ *       pois o mesmo defeito e mais grave quando atinge muitas pessoas;
  *   <li>a confianca decorre da pontuacao e da distancia para a segunda colocada:
  *       vitoria folgada gera confianca alta, empate tecnico gera confianca baixa.
  * </ol>
@@ -83,6 +83,24 @@ public class HeuristicTriageProvider implements TriageProvider {
                     "divergência", "cai a cada", "desconecta", "demora", "às vezes",
                     "oscilando", "falha ocasional", "congela", "fecha sozinho");
 
+    /**
+     * Incidente de seguranca da informacao.
+     *
+     * <p>Recebe tratamento proprio, e nao apenas mais um termo de bloqueio, porque
+     * a gravidade aqui nao vem de o trabalho estar parado: um banco de dados
+     * invadido pode nao interromper ninguem e ainda assim exigir resposta
+     * imediata. Sem este grupo, "o sistema foi invadido, invadiram o banco de
+     * dados" caia como prioridade BAIXA — nenhuma das expressoes de
+     * indisponibilidade aparece nesse texto.
+     */
+    private static final List<Termo> SINAIS_SEGURANCA =
+            normalizarTodos(
+                    "invadido", "invadida", "invadiram", "invasão", "hackeado", "hacker",
+                    "ransomware", "phishing", "malware", "vírus", "sequestrou", "sequestrados",
+                    "criptografou", "vazamento", "vazaram", "vazou", "acesso indevido",
+                    "acesso não autorizado", "roubaram", "fraude", "golpe", "invadir",
+                    "senha vazada", "dados expostos", "invadiu");
+
     /** Amplitude do impacto: eleva a prioridade em um nivel. */
     private static final List<Termo> SINAIS_AMPLITUDE =
             normalizarTodos(
@@ -97,8 +115,8 @@ public class HeuristicTriageProvider implements TriageProvider {
 
     @Override
     public TriageResult classificar(TriageRequest requisicao) {
-        String titulo = normalizar(requisicao.titulo());
-        String descricao = normalizar(requisicao.descricao());
+        String titulo = Texto.normalizar(requisicao.titulo());
+        String descricao = Texto.normalizar(requisicao.descricao());
 
         ResultadoCategoria categoria = classificarCategoria(titulo, descricao);
         ResultadoPrioridade prioridade = classificarPrioridade(titulo + " " + descricao);
@@ -167,12 +185,16 @@ public class HeuristicTriageProvider implements TriageProvider {
     // =========================================================================
 
     private ResultadoPrioridade classificarPrioridade(String texto) {
+        List<String> seguranca = encontrar(texto, SINAIS_SEGURANCA);
         List<String> bloqueio = encontrar(texto, SINAIS_BLOQUEIO);
         List<String> degradacao = encontrar(texto, SINAIS_DEGRADACAO);
         List<String> amplitude = encontrar(texto, SINAIS_AMPLITUDE);
 
         Prioridade prioridade;
-        if (!bloqueio.isEmpty()) {
+        if (!seguranca.isEmpty() || !bloqueio.isEmpty()) {
+            // Suspeita de incidente de seguranca vai direto para ALTA, sem depender
+            // de haver sinal de indisponibilidade: o custo de tratar um alarme falso
+            // como urgente e muito menor que o de demorar a responder a uma invasao.
             prioridade = Prioridade.ALTA;
         } else if (!degradacao.isEmpty()) {
             prioridade = Prioridade.MEDIA;
@@ -185,7 +207,7 @@ public class HeuristicTriageProvider implements TriageProvider {
             prioridade = prioridade == Prioridade.BAIXA ? Prioridade.MEDIA : Prioridade.ALTA;
         }
 
-        return new ResultadoPrioridade(prioridade, bloqueio, degradacao, amplitude);
+        return new ResultadoPrioridade(prioridade, seguranca, bloqueio, degradacao, amplitude);
     }
 
     // =========================================================================
@@ -238,7 +260,12 @@ public class HeuristicTriageProvider implements TriageProvider {
 
         texto.append(" ");
 
-        if (!prioridade.bloqueio().isEmpty()) {
+        if (!prioridade.seguranca().isEmpty()) {
+            texto.append("Indício de incidente de segurança (")
+                    .append(listar(prioridade.seguranca()))
+                    .append("), que exige resposta imediata independentemente do impacto ")
+                    .append("percebido, sustenta prioridade ALTA.");
+        } else if (!prioridade.bloqueio().isEmpty()) {
             texto.append("Expressões de indisponibilidade ou bloqueio (")
                     .append(listar(prioridade.bloqueio()))
                     .append(") sustentam prioridade ALTA.");
@@ -272,17 +299,6 @@ public class HeuristicTriageProvider implements TriageProvider {
 
     private static String listar(List<String> termos) {
         return String.join(", ", termos.stream().limit(3).toList());
-    }
-
-    /** Minusculas e sem acentuacao, para que "não" e "nao" sejam o mesmo termo. */
-    static String normalizar(String texto) {
-        if (texto == null || texto.isBlank()) {
-            return "";
-        }
-        String semAcento =
-                Normalizer.normalize(texto, Normalizer.Form.NFD)
-                        .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        return semAcento.toLowerCase(Locale.ROOT);
     }
 
     private static List<Termo> normalizarTodos(String... termos) {
@@ -320,7 +336,10 @@ public class HeuristicTriageProvider implements TriageProvider {
                 normalizarTodos(
                         "sistema", "financeiro", "folha", "protocolo", "módulo", "portal",
                         "integração", "banco de dados", "relatório", "erp", "pagamento",
-                        "empenho", "prestação de contas", "erro 500", "convênio"));
+                        "empenho", "prestação de contas", "erro 500", "convênio",
+                        // Aplicacoes web da fundacao: sem estes termos, "o site caiu" nao
+                        // encontrava nenhum lexico e ia parar em Outros.
+                        "site", "página", "aplicação web", "hospedagem", "domínio"));
 
         lexico.put(
                 Categoria.SOFTWARE,
@@ -358,7 +377,7 @@ public class HeuristicTriageProvider implements TriageProvider {
     private record Termo(String texto, Pattern padrao) {
 
         static Termo de(String original) {
-            String normalizado = normalizar(original);
+            String normalizado = Texto.normalizar(original);
             return new Termo(
                     normalizado, Pattern.compile("\\b" + Pattern.quote(normalizado) + "(s|es)?\\b"));
         }
@@ -373,12 +392,16 @@ public class HeuristicTriageProvider implements TriageProvider {
 
     private record ResultadoPrioridade(
             Prioridade prioridade,
+            List<String> seguranca,
             List<String> bloqueio,
             List<String> degradacao,
             List<String> amplitude) {
 
         boolean semSinais() {
-            return bloqueio.isEmpty() && degradacao.isEmpty() && amplitude.isEmpty();
+            return seguranca.isEmpty()
+                    && bloqueio.isEmpty()
+                    && degradacao.isEmpty()
+                    && amplitude.isEmpty();
         }
     }
 }
