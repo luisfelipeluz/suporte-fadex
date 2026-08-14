@@ -140,7 +140,7 @@ export function DetalheChamado() {
         onClick={() => navegar('/chamados')}
         style={{ alignSelf: 'flex-start', paddingLeft: 0 }}
       >
-        ← Voltar para {admin ? 'chamados' : 'meus chamados'}
+        ‹ Voltar para {admin ? 'chamados' : 'meus chamados'}
       </button>
 
       {/* ---------------------------------------------------------------- */}
