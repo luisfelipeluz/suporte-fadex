@@ -105,6 +105,19 @@ export interface Comentario {
   criadoEm: string;
 }
 
+export interface ChamadoSimilar {
+  id: number;
+  titulo: string;
+  status: StatusChamado;
+  statusRotulo: string;
+  statusCor: string;
+  solicitante: Usuario;
+  criadoEm: string;
+  /** Similaridade textual em pontos percentuais. */
+  similaridade: number;
+  termosEmComum: string[];
+}
+
 export interface ChamadoDetalhe extends Omit<ChamadoResumo, 'origemClassificacao'> {
   descricao: string;
   triagem: Triagem;
@@ -112,6 +125,8 @@ export interface ChamadoDetalhe extends Omit<ChamadoResumo, 'origemClassificacao
   encerrado: boolean;
   historico: EventoHistorico[];
   comentarios: Comentario[];
+  /** Chamados que possivelmente relatam o mesmo incidente. */
+  possiveisDuplicados: ChamadoSimilar[];
 }
 
 export interface Pagina<T> {

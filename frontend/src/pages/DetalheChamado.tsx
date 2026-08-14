@@ -230,6 +230,90 @@ export function DetalheChamado() {
         {/* Coluna principal                                                */}
         {/* -------------------------------------------------------------- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Possiveis duplicados ------------------------------------------ */}
+          {chamado.possiveisDuplicados.length > 0 && (
+            <section
+              className="card card-pad"
+              style={{ borderColor: 'var(--md)', background: 'var(--mdl)' }}
+              aria-label="Possíveis chamados duplicados"
+            >
+              <h2 style={{ margin: '0 0 4px', fontSize: 15, color: 'var(--md)' }}>
+                ⧉ Possíveis duplicados
+              </h2>
+              <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--ink2)' }}>
+                {chamado.possiveisDuplicados.length === 1
+                  ? 'Outro chamado usa praticamente o mesmo texto. '
+                  : `Outros ${chamado.possiveisDuplicados.length} chamados usam praticamente o mesmo texto. `}
+                Verifique antes de abrir uma nova frente de trabalho para o mesmo incidente.
+              </p>
+
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
+                {chamado.possiveisDuplicados.map((similar) => (
+                  <li key={similar.id}>
+                    <button
+                      type="button"
+                      onClick={() => navegar(`/chamados/${similar.id}`)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '10px 12px',
+                        border: '1px solid var(--bd)',
+                        borderRadius: 'var(--rd)',
+                        background: 'var(--sf)',
+                        cursor: 'pointer',
+                        font: 'inherit',
+                        color: 'inherit',
+                      }}
+                    >
+                      <span
+                        className="badge"
+                        style={{ background: 'var(--mdl)', color: 'var(--md)', flexShrink: 0 }}
+                        title="Similaridade textual com este chamado"
+                      >
+                        {similar.similaridade}%
+                      </span>
+
+                      <span style={{ minWidth: 0, flex: 1 }}>
+                        <span
+                          style={{
+                            display: 'block',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          #{similar.id} — {similar.titulo}
+                        </span>
+                        <span style={{ display: 'block', fontSize: 12, color: 'var(--mut)' }}>
+                          {similar.solicitante.nome} · {dataCompleta(similar.criadoEm)}
+                          {similar.termosEmComum.length > 0 && (
+                            <> · termos em comum: {similar.termosEmComum.join(', ')}</>
+                          )}
+                        </span>
+                      </span>
+
+                      <span
+                        className="badge"
+                        style={{
+                          background: 'var(--ntl)',
+                          color: similar.statusCor,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {similar.statusRotulo}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {/* Fluxo de status */}
           <section className="card card-pad">
             <h2 style={{ margin: '0 0 14px', fontSize: 15 }}>Fluxo do chamado</h2>

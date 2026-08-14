@@ -252,6 +252,85 @@ export function NovoChamado() {
             )}
           </div>
 
+          {resultado.possiveisDuplicados.length > 0 && (
+            <div
+              style={{
+                border: '1px solid var(--md)',
+                background: 'var(--mdl)',
+                borderRadius: 8,
+                padding: 16,
+                marginTop: 16,
+              }}
+            >
+              <p
+                style={{
+                  margin: '0 0 6px',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: 'var(--md)',
+                  letterSpacing: '0.03em',
+                }}
+              >
+                ⧉ POSSÍVEL DUPLICADO
+              </p>
+              <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--ink2)', lineHeight: 1.6 }}>
+                {resultado.possiveisDuplicados.length === 1
+                  ? 'Um chamado já registrado descreve praticamente o mesmo problema. '
+                  : 'Alguns chamados já registrados descrevem praticamente o mesmo problema. '}
+                Se for o mesmo incidente, acompanhe o existente em vez de aguardar um novo
+                atendimento.
+              </p>
+
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
+                {resultado.possiveisDuplicados.map((similar) => (
+                  <li key={similar.id}>
+                    <button
+                      type="button"
+                      onClick={() => navegar(`/chamados/${similar.id}`)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '9px 11px',
+                        border: '1px solid var(--bd)',
+                        borderRadius: 'var(--rd)',
+                        background: 'var(--sf)',
+                        cursor: 'pointer',
+                        font: 'inherit',
+                        color: 'inherit',
+                      }}
+                    >
+                      <span
+                        className="badge"
+                        style={{ background: 'var(--mdl)', color: 'var(--md)', flexShrink: 0 }}
+                      >
+                        {similar.similaridade}%
+                      </span>
+                      <span
+                        style={{
+                          minWidth: 0,
+                          flex: 1,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        #{similar.id} — {similar.titulo}
+                      </span>
+                      <span style={{ fontSize: 12, color: similar.statusCor, flexShrink: 0 }}>
+                        {similar.statusRotulo}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
             <button
               type="button"
