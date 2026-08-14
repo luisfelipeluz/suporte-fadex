@@ -12,6 +12,7 @@ import type {
 } from '../api/tipos';
 import { useAuth } from '../auth/AuthContext';
 import { Avatar, OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
+import { Icone } from '../components/Icone';
 import {
   EstadoCarregando,
   EstadoErro,
@@ -332,7 +333,11 @@ export function DetalheChamado() {
                         color: concluido ? '#0b5f58' : atual ? 'var(--acd)' : '#94a3b8',
                       }}
                     >
-                      <span aria-hidden="true">{concluido ? '✓' : i + 1}</span>
+                      {concluido ? (
+                        <Icone nome="check" tamanho={11} traco={3} />
+                      ) : (
+                        <span aria-hidden="true">{i + 1}</span>
+                      )}
                       {ROTULO_STATUS[s]}
                     </span>
                     {i < FLUXO.length - 1 && (
@@ -573,7 +578,18 @@ export function DetalheChamado() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Triagem inteligente */}
           <section className="card card-pad">
-            <h2 style={{ margin: '0 0 4px', fontSize: 15 }}>✨ Triagem inteligente</h2>
+            <h2
+              style={{
+                margin: '0 0 4px',
+                fontSize: 15,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <Icone nome="brilho" tamanho={16} traco={1.8} cor="var(--ac)" />
+              Triagem inteligente
+            </h2>
             <p style={{ margin: '0 0 16px', fontSize: 12, color: 'var(--mut)' }}>
               Classificação automática {t.provedor ? `via ${t.provedor}` : ''}
             </p>

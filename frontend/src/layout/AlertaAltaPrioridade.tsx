@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
+import { Icone } from '../components/Icone';
 import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa } from '../utils/formato';
 
@@ -34,8 +35,20 @@ export function AlertaAltaPrioridade() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1.2 }}>
-          🚨
+        <span
+          aria-hidden="true"
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: 'var(--hi)',
+            display: 'grid',
+            placeItems: 'center',
+            flex: 'none',
+            animation: 'plsr 1.6s infinite',
+          }}
+        >
+          <Icone nome="alerta" tamanho={13} traco={2.4} cor="#fff" />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#b3261e' }}>

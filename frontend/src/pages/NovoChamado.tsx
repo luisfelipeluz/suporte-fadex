@@ -5,6 +5,7 @@ import { ErroApi } from '../api/erros';
 import { chamados } from '../api/servicos';
 import type { ChamadoDetalhe } from '../api/tipos';
 import { PriorityBadge } from '../components/Badges';
+import { Icone } from '../components/Icone';
 import { ROTULO_CONFIANCA } from '../utils/formato';
 
 type Etapa = 'formulario' | 'analisando' | 'concluido';
@@ -103,11 +104,10 @@ export function NovoChamado() {
               background: 'var(--acl)',
               display: 'grid',
               placeItems: 'center',
-              fontSize: 22,
               animation: 'pls 1.8s infinite',
             }}
           >
-            ✨
+            <Icone nome="brilho" tamanho={26} traco={1.7} cor="var(--ac)" />
           </div>
 
           <h1 style={{ margin: 0, fontSize: 19 }}>Analisando sua solicitação…</h1>
@@ -134,9 +134,13 @@ export function NovoChamado() {
                     fontSize: 14,
                   }}
                 >
-                  <span aria-hidden="true" style={{ fontWeight: 700 }}>
-                    {concluido ? '✓' : atual ? '·' : '·'}
-                  </span>
+                  {concluido ? (
+                    <Icone nome="check" tamanho={11} traco={3} />
+                  ) : (
+                    <span aria-hidden="true" style={{ fontWeight: 700 }}>
+                      ·
+                    </span>
+                  )}
                   {rotulo}
                 </div>
               );
@@ -168,10 +172,9 @@ export function NovoChamado() {
                 color: '#0b5f58',
                 display: 'grid',
                 placeItems: 'center',
-                fontWeight: 700,
               }}
             >
-              ✓
+              <Icone nome="check" tamanho={15} traco={3} cor="#0b5f58" />
             </span>
             <h1 style={{ margin: 0, fontSize: 19 }}>Triagem concluída</h1>
           </div>
@@ -196,9 +199,13 @@ export function NovoChamado() {
                 fontWeight: 800,
                 color: 'var(--acd)',
                 letterSpacing: '0.03em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
               }}
             >
-              ✨ SUGESTÃO DA IA
+              <Icone nome="brilho" tamanho={14} traco={1.8} />
+              SUGESTÃO DA IA
             </p>
 
             <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
@@ -425,9 +432,7 @@ export function NovoChamado() {
               borderRadius: 8,
             }}
           >
-            <span aria-hidden="true" style={{ fontSize: 16 }}>
-              ✨
-            </span>
+            <Icone nome="brilho" tamanho={17} traco={1.8} cor="var(--ac)" />
             <p style={{ margin: 0, fontSize: 13, color: 'var(--ink2)', lineHeight: 1.5 }}>
               Você não precisa escolher categoria nem prioridade: a IA analisa o texto e sugere a
               classificação, que a equipe de suporte pode revisar.

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { Avatar } from '../components/Badges';
+import { Icone } from '../components/Icone';
 import { useRealtime, type EstadoConexao } from '../realtime/RealtimeContext';
 import { AlertaAltaPrioridade } from './AlertaAltaPrioridade';
 import { CentralNotificacoes } from './CentralNotificacoes';
@@ -163,7 +164,7 @@ export function AppShell() {
             onClick={() => setMenuMobile(true)}
             aria-label="Abrir menu"
           >
-            ☰
+            <Icone nome="menu" tamanho={18} />
           </button>
 
           <div style={{ flex: 1 }} />
