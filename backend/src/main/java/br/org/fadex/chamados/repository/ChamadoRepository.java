@@ -10,10 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface ChamadoRepository
@@ -32,52 +30,30 @@ public interface ChamadoRepository
     @EntityGraph(attributePaths = {"solicitante", "responsavel"})
     Optional<Chamado> findWithUsuariosById(Long id);
 
-    // --- Consultas de apoio ao dashboard -------------------------------------
+    // --- Contagens do dashboard ----------------------------------------------
+    //
+    // Consultas derivadas, em pares: uma global (visao do ADMIN) e outra restrita
+    // ao solicitante (visao do SOLICITANTE). O mesmo recorte de visibilidade da
+    // listagem vale para os indicadores — o dashboard de um solicitante jamais
+    // revela o volume de chamados dos demais.
 
-    @Query("select c.status as chave, count(c) as total from Chamado c group by c.status")
-    List<ContagemProjecao> contarPorStatus();
+    long countByStatus(StatusChamado status);
 
-    @Query(
-            "select c.status as chave, count(c) as total from Chamado c "
-                    + "where c.solicitante = :solicitante group by c.status")
-    List<ContagemProjecao> contarPorStatusDoSolicitante(@Param("solicitante") Usuario solicitante);
+    long countByStatusAndSolicitante(StatusChamado status, Usuario solicitante);
 
-    @Query("select c.prioridade as chave, count(c) as total from Chamado c group by c.prioridade")
-    List<ContagemProjecao> contarPorPrioridade();
+    long countByPrioridade(Prioridade prioridade);
 
-    @Query(
-            "select c.prioridade as chave, count(c) as total from Chamado c "
-                    + "where c.solicitante = :solicitante group by c.prioridade")
-    List<ContagemProjecao> contarPorPrioridadeDoSolicitante(@Param("solicitante") Usuario solicitante);
+    long countByPrioridadeAndSolicitante(Prioridade prioridade, Usuario solicitante);
 
-    @Query("select c.origemClassificacao as chave, count(c) as total from Chamado c group by c.origemClassificacao")
-    List<ContagemProjecao> contarPorOrigem();
+    long countByOrigemClassificacao(OrigemClassificacao origem);
 
-    @Query(
-            "select c.origemClassificacao as chave, count(c) as total from Chamado c "
-                    + "where c.solicitante = :solicitante group by c.origemClassificacao")
-    List<ContagemProjecao> contarPorOrigemDoSolicitante(@Param("solicitante") Usuario solicitante);
+    long countByOrigemClassificacaoAndSolicitante(OrigemClassificacao origem, Usuario solicitante);
 
     long countBySolicitante(Usuario solicitante);
 
-    /**
-     * Chamados abertos recentes usados na deteccao de similares.
-     *
-     * <p>Restringe a busca aos que ainda estao em aberto: comparar contra chamados
-     * ja encerrados nao ajuda quem esta abrindo um novo.
-     */
-    @EntityGraph(attributePaths = {"solicitante"})
-    List<Chamado> findTop50ByStatusInOrderByCriadoEmDesc(List<StatusChamado> status);
+    /** Chamados de uma prioridade que ainda demandam acao (nao encerrados). */
+    long countByPrioridadeAndStatusNotIn(Prioridade prioridade, Collection<StatusChamado> encerrados);
 
-    /** Projecao de contagem agrupada usada pelo dashboard. */
-    interface ContagemProjecao {
-        Object getChave();
-
-        long getTotal();
-    }
-
-    // Referencias mantidas para deixar explicito o vocabulario de filtragem.
-    long countByPrioridadeAndStatusIn(Prioridade prioridade, List<StatusChamado> status);
-
-    long countByOrigemClassificacao(OrigemClassificacao origem);
+    long countByPrioridadeAndStatusNotInAndSolicitante(
+            Prioridade prioridade, Collection<StatusChamado> encerrados, Usuario solicitante);
 }
