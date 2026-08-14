@@ -36,6 +36,8 @@ export type TipoEvento =
   | 'CLASSIFICACAO_CORRIGIDA'
   | 'RESPONSAVEL_ATRIBUIDO'
   | 'STATUS_ALTERADO'
+  | 'STATUS_RETROCEDIDO'
+  | 'STATUS_RETROCEDIDO'
   | 'COMENTARIO_ADICIONADO'
   | 'CHAMADO_ATUALIZADO'
   | 'CHAMADO_CANCELADO';
@@ -122,6 +124,9 @@ export interface ChamadoDetalhe extends Omit<ChamadoResumo, 'origemClassificacao
   descricao: string;
   triagem: Triagem;
   proximoStatus: StatusChamado | null;
+  /** Etapa anterior do fluxo, para onde o chamado pode retornar; nulo na primeira
+   *  etapa e nos estados encerrados. */
+  statusAnterior: StatusChamado | null;
   encerrado: boolean;
   historico: EventoHistorico[];
   comentarios: Comentario[];

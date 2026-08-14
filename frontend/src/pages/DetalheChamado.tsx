@@ -362,22 +362,53 @@ export function DetalheChamado() {
               </p>
             ) : (
               admin &&
-              chamado.proximoStatus && (
-                <div style={{ marginTop: 14 }}>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    disabled={processando}
-                    onClick={() =>
-                      executar(
-                        () => chamados.alterarStatus(chamado.id, chamado.proximoStatus!),
-                        'Chamado atualizado',
-                        `#${chamado.id} · ${ROTULO_STATUS[chamado.proximoStatus!]}`,
-                      )
-                    }
-                  >
-                    Mover para {ROTULO_STATUS[chamado.proximoStatus]}
-                  </button>
+              (chamado.proximoStatus || chamado.statusAnterior) && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {/* O retorno vem primeiro por ser o caminho menos usado: fica
+                      à vista, mas o avanço continua sendo a ação em destaque. */}
+                  {chamado.statusAnterior && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      disabled={processando}
+                      title={`Devolver o chamado para ${ROTULO_STATUS[chamado.statusAnterior]}`}
+                      onClick={() =>
+                        executar(
+                          () => chamados.alterarStatus(chamado.id, chamado.statusAnterior!),
+                          'Chamado retornado',
+                          `#${chamado.id} · ${ROTULO_STATUS[chamado.statusAnterior!]}`,
+                        )
+                      }
+                    >
+                      <span aria-hidden="true">←</span> Retornar para{' '}
+                      {ROTULO_STATUS[chamado.statusAnterior]}
+                    </button>
+                  )}
+
+                  {chamado.proximoStatus && (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      disabled={processando}
+                      onClick={() =>
+                        executar(
+                          () => chamados.alterarStatus(chamado.id, chamado.proximoStatus!),
+                          'Chamado atualizado',
+                          `#${chamado.id} · ${ROTULO_STATUS[chamado.proximoStatus!]}`,
+                        )
+                      }
+                    >
+                      Mover para {ROTULO_STATUS[chamado.proximoStatus]}
+                    </button>
+                  )}
                 </div>
               )
             )}
