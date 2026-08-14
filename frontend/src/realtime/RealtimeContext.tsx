@@ -53,7 +53,7 @@ const RealtimeContext = createContext<EstadoRealtime | null>(null);
 const LIMITE_NOTIFICACOES = 20;
 
 export function RealtimeProvider({ children }: { children: ReactNode }) {
-  const { usuario, admin } = useAuth();
+  const { usuario } = useAuth();
   const { notificar } = useToasts();
 
   const [conexao, setConexao] = useState<EstadoConexao>('conectando');
@@ -66,9 +66,6 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   // vez — enxerguem sempre o valor atual sem recriar a conexão a cada render.
   const notificarRef = useRef(notificar);
   notificarRef.current = notificar;
-
-  const adminRef = useRef(admin);
-  adminRef.current = admin;
 
   const adicionarNotificacao = useCallback(
     (titulo: string, detalhe: string, cor: string, chamadoId: number) => {
