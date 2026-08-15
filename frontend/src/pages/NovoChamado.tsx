@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ErroApi } from '../api/erros';
 import { chamados } from '../api/servicos';
 import type { ChamadoDetalhe } from '../api/tipos';
-import { PriorityBadge } from '../components/Badges';
+import { CORES_STATUS, PriorityBadge } from '../components/Badges';
 import { Icone } from '../components/Icone';
 import { ROTULO_CONFIANCA } from '../utils/formato';
 
@@ -128,9 +128,9 @@ export function NovoChamado() {
                     gap: 10,
                     padding: '10px 12px',
                     borderRadius: 8,
-                    border: `1px solid ${concluido ? '#b9e0d6' : atual ? '#c7d7fb' : 'var(--bd)'}`,
-                    background: concluido ? 'var(--lol)' : atual ? 'var(--acl)' : '#fafbfd',
-                    color: concluido ? '#0b5f58' : atual ? 'var(--acd)' : 'var(--mut)',
+                    border: `1px solid ${concluido ? 'var(--lob)' : atual ? 'var(--acb)' : 'var(--bd)'}`,
+                    background: concluido ? 'var(--lol)' : atual ? 'var(--acl)' : 'var(--sf2)',
+                    color: concluido ? 'var(--lof)' : atual ? 'var(--acd)' : 'var(--mut)',
                     fontSize: 14,
                   }}
                 >
@@ -169,12 +169,12 @@ export function NovoChamado() {
                 height: 30,
                 borderRadius: '50%',
                 background: 'var(--lol)',
-                color: '#0b5f58',
+                color: 'var(--lof)',
                 display: 'grid',
                 placeItems: 'center',
               }}
             >
-              <Icone nome="check" tamanho={15} traco={3} cor="#0b5f58" />
+              <Icone nome="check" tamanho={15} traco={3} cor="var(--lof)" />
             </span>
             <h1 style={{ margin: 0, fontSize: 19 }}>Triagem concluída</h1>
           </div>
@@ -186,7 +186,7 @@ export function NovoChamado() {
 
           <div
             style={{
-              border: '1px solid #c7d7fb',
+              border: '1px solid var(--acb)',
               background: 'var(--acl)',
               borderRadius: 8,
               padding: 16,
@@ -230,7 +230,7 @@ export function NovoChamado() {
             </div>
 
             {t.confiancaPercentual != null && (
-              <div style={{ height: 6, background: '#fff', borderRadius: 999, marginTop: 14 }}>
+              <div style={{ height: 6, background: 'var(--sf)', borderRadius: 999, marginTop: 14 }}>
                 <div
                   style={{
                     height: '100%',
@@ -251,7 +251,7 @@ export function NovoChamado() {
                   color: 'var(--ink2)',
                   lineHeight: 1.6,
                   paddingTop: 12,
-                  borderTop: '1px solid #c7d7fb',
+                  borderTop: '1px solid var(--acb)',
                 }}
               >
                 <strong>Por que esta classificação:</strong> {t.justificativa}
@@ -332,7 +332,7 @@ export function NovoChamado() {
                       >
                         #{similar.id} — {similar.titulo}
                       </span>
-                      <span style={{ fontSize: 12, color: similar.statusCor, flexShrink: 0 }}>
+                      <span style={{ fontSize: 12, color: CORES_STATUS[similar.status].cor, flexShrink: 0 }}>
                         {similar.statusRotulo}
                       </span>
                     </button>
@@ -397,7 +397,7 @@ export function NovoChamado() {
             alignItems: 'flex-start',
             padding: '14px 18px',
             background: 'var(--acl)',
-            borderBottom: '1px solid #dbe6fe',
+            borderBottom: '1px solid var(--acb)',
           }}
         >
           <Icone nome="brilho" tamanho={17} traco={1.8} cor="var(--ac)" style={{ marginTop: 1 }} />
@@ -405,7 +405,7 @@ export function NovoChamado() {
             <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--acd)' }}>
               Você não precisa escolher categoria nem prioridade
             </p>
-            <p style={{ margin: 0, fontSize: 12.5, color: '#3f6ecb', lineHeight: 1.45 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--acf)', lineHeight: 1.45 }}>
               A triagem inteligente analisa o texto e sugere a classificação. A equipe de suporte
               revisa depois.
             </p>
@@ -418,8 +418,8 @@ export function NovoChamado() {
             role="alert"
             style={{
               background: 'var(--hil)',
-              border: '1px solid #f6c9c9',
-              color: '#b3261e',
+              border: '1px solid var(--hib)',
+              color: 'var(--hif)',
               borderRadius: 8,
               padding: '10px 12px',
               fontSize: 13,
@@ -476,7 +476,7 @@ export function NovoChamado() {
                   border: '1px dashed var(--bd)',
                   borderRadius: 'var(--rd)',
                   padding: '12px 13px',
-                  background: '#fafbfd',
+                  background: 'var(--sf2)',
                 }}
               >
                 <p
@@ -507,7 +507,7 @@ export function NovoChamado() {
                       width: 7,
                       height: 7,
                       borderRadius: '50%',
-                      background: '#cbd5e1',
+                      background: 'var(--dim)',
                       flex: 'none',
                     }}
                   />

@@ -1,6 +1,6 @@
 /** Formatação de datas e rótulos exibidos na interface. */
 
-import type { Confianca, Prioridade, StatusChamado } from '../api/tipos';
+import type { Confianca, Prioridade, StatusChamado, TipoEvento } from '../api/tipos';
 
 const HOJE_MS = 24 * 60 * 60 * 1000;
 
@@ -69,6 +69,26 @@ export const ROTULO_CONFIANCA: Record<Confianca, string> = {
 };
 
 /** Ícone textual de cada status, acompanhando a cor no badge. */
+/**
+ * Cor do marcador de cada evento no histórico.
+ *
+ * A API também manda uma cor em `evento.cor`, mas ela é um literal fixo: não
+ * acompanharia a troca de tema, e ficaria na paleta antiga. O tipo do evento é
+ * o dado que importa — a cor sai dele, aqui, em token.
+ */
+export const COR_EVENTO: Record<TipoEvento, string> = {
+  CHAMADO_ABERTO: 'var(--ac)',
+  CLASSIFICACAO_IA: 'var(--ac)',
+  CLASSIFICACAO_ACEITA: 'var(--lo)',
+  CLASSIFICACAO_CORRIGIDA: 'var(--md)',
+  RESPONSAVEL_ATRIBUIDO: 'var(--mut)',
+  STATUS_ALTERADO: 'var(--ac)',
+  STATUS_RETROCEDIDO: 'var(--md)',
+  COMENTARIO_ADICIONADO: 'var(--mut)',
+  CHAMADO_ATUALIZADO: 'var(--mut)',
+  CHAMADO_CANCELADO: 'var(--dim)',
+};
+
 export const ICONE_STATUS: Record<StatusChamado, string> = {
   ABERTO: '○',
   EM_ANDAMENTO: '◐',

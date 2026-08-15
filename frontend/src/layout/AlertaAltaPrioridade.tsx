@@ -27,7 +27,7 @@ export function AlertaAltaPrioridade() {
         right: 20,
         width: 'min(380px, calc(100vw - 40px))',
         padding: 16,
-        borderColor: '#f6c9c9',
+        borderColor: 'var(--hib)',
         borderLeft: '4px solid var(--hi)',
         boxShadow: 'var(--sh3)',
         animation: 'inR .3s ease, plsr 2s ease 3',
@@ -51,7 +51,7 @@ export function AlertaAltaPrioridade() {
           <Icone nome="alerta" tamanho={13} traco={2.4} cor="#fff" />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#b3261e' }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: 'var(--hif)' }}>
             Nova solicitação de alta prioridade
           </p>
           <p style={{ margin: '6px 0 0', fontSize: 14, fontWeight: 700 }}>{alerta.titulo}</p>
@@ -59,7 +59,7 @@ export function AlertaAltaPrioridade() {
           <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--mut)' }}>
             #{alerta.id} · {alerta.categoriaRotulo} · {alerta.solicitante.nome}
           </p>
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#94a3b8' }}>
+          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--dim)' }}>
             {dataRelativa(alerta.criadoEm)}
           </p>
 

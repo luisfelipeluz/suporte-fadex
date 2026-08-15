@@ -134,7 +134,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           adicionarNotificacao(
             'Novo chamado criado',
             `#${chamado.id} · ${chamado.titulo}`,
-            '#64748b',
+            'var(--mut)',
             chamado.id,
           );
         }
@@ -148,7 +148,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         adicionarNotificacao(
           'Chamado atualizado',
           `#${chamado.id} · ${chamado.statusRotulo}`,
-          '#2563eb',
+          'var(--ac)',
           chamado.id,
         );
       }),
@@ -167,7 +167,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         adicionarNotificacao(
           'Chamado de alta prioridade recebido',
           `#${chamado.id} · ${chamado.titulo}`,
-          '#dc2626',
+          'var(--hi)',
           chamado.id,
         );
       }),

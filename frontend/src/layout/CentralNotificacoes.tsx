@@ -121,7 +121,7 @@ export function CentralNotificacoes() {
                     padding: '11px 14px',
                     border: 'none',
                     borderBottom: '1px solid var(--bd)',
-                    background: n.lida ? 'transparent' : '#fbfcfe',
+                    background: n.lida ? 'transparent' : 'var(--sf2)',
                     cursor: 'pointer',
                     textAlign: 'left',
                   }}
@@ -153,7 +153,7 @@ export function CentralNotificacoes() {
                     >
                       {n.detalhe}
                     </span>
-                    <span style={{ display: 'block', fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--dim)', marginTop: 2 }}>
                       {dataRelativa(n.quando)}
                     </span>
                   </span>

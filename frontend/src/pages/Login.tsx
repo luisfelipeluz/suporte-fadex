@@ -16,6 +16,7 @@ import { useState, type FormEvent } from 'react';
 import { ErroApi } from '../api/erros';
 import { useAuth } from '../auth/AuthContext';
 import { Icone } from '../components/Icone';
+import { useTema } from '../styles/TemaContext';
 
 type Aba = 'login' | 'cadastro';
 
@@ -41,6 +42,7 @@ const DESTAQUES = [
 
 export function Login() {
   const { entrar, cadastrar } = useAuth();
+  const { efetivo, alternar } = useTema();
 
   const [aba, setAba] = useState<Aba>('login');
   const [email, setEmail] = useState<string>(CONTAS_DEMO[0].email);
@@ -100,9 +102,9 @@ export function Login() {
     cursor: 'pointer',
     fontSize: 13,
     fontWeight: 600,
-    background: ativa ? '#fff' : 'transparent',
+    background: ativa ? 'var(--sf)' : 'transparent',
     color: ativa ? 'var(--ink)' : 'var(--mut)',
-    boxShadow: ativa ? '0 1px 2px rgba(15,23,42,.1)' : 'none',
+    boxShadow: ativa ? 'var(--sh1)' : 'none',
   });
 
   return (
@@ -116,7 +118,7 @@ export function Login() {
             style={{
               width: 30,
               height: 30,
-              background: 'var(--ac)',
+              background: 'var(--panel-ac)',
               borderRadius: 6,
               display: 'grid',
               placeItems: 'center',
@@ -127,7 +129,7 @@ export function Login() {
             F
           </span>
           <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.01em' }}>
-            FADEX <span style={{ color: '#94a3b8', fontWeight: 500 }}>Suporte</span>
+            FADEX <span style={{ color: 'var(--panel-mut)', fontWeight: 500 }}>Suporte</span>
           </span>
         </div>
 
@@ -137,7 +139,7 @@ export function Login() {
               margin: 0,
               fontSize: 13,
               fontWeight: 600,
-              color: 'var(--ac)',
+              color: 'var(--panel-ac)',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
             }}
@@ -158,7 +160,7 @@ export function Login() {
             Abra o chamado. A triagem é automática.
           </h1>
 
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: 'var(--panel-mut)' }}>
             Descreva o problema em texto livre — a IA sugere categoria e prioridade, e a equipe de
             suporte acompanha tudo em tempo real.
           </p>
@@ -181,24 +183,24 @@ export function Login() {
                     width: 22,
                     height: 22,
                     flex: 'none',
-                    border: '1px solid #334155',
+                    border: '1px solid var(--panel-bd)',
                     borderRadius: 5,
                     display: 'grid',
                     placeItems: 'center',
-                    color: 'var(--ac)',
+                    color: 'var(--panel-ac)',
                     fontSize: 11,
                     fontWeight: 700,
                   }}
                 >
                   {i + 1}
                 </span>
-                <span style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.5 }}>{texto}</span>
+                <span style={{ fontSize: 13.5, color: 'var(--panel-fg)', lineHeight: 1.5 }}>{texto}</span>
               </li>
             ))}
           </ol>
         </div>
 
-        <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--panel-dim)' }}>
           Desafio técnico · FADEX · Central de Chamados
         </p>
       </aside>
@@ -206,7 +208,29 @@ export function Login() {
       {/* ------------------------------------------------------------------ */}
       {/* Formulário                                                          */}
       {/* ------------------------------------------------------------------ */}
-      <main className="login-form">
+      <main className="login-form" style={{ position: 'relative' }}>
+        {/* Fica na entrada tambem: quem prefere um tema nao deveria ter de
+            autenticar antes de poder escolher. */}
+        <button
+          type="button"
+          onClick={alternar}
+          title={efetivo === 'escuro' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
+          aria-label={efetivo === 'escuro' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
+          className="btn btn-secondary"
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            width: 34,
+            height: 34,
+            padding: 0,
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          <Icone nome={efetivo === 'escuro' ? 'sol' : 'lua'} tamanho={16} traco={1.9} />
+        </button>
+
         <div style={{ width: '100%', maxWidth: 388 }}>
           <div
             role="tablist"
@@ -262,14 +286,14 @@ export function Login() {
                 gap: 10,
                 alignItems: 'flex-start',
                 background: 'var(--hil)',
-                border: '1px solid #f6c9c9',
+                border: '1px solid var(--hib)',
                 borderRadius: 'var(--rd)',
                 padding: '11px 12px',
                 marginBottom: 18,
               }}
             >
               <Icone nome="alertaCirculo" tamanho={16} cor="var(--hi)" style={{ marginTop: 1 }} />
-              <span style={{ fontSize: 13, color: '#b3261e', lineHeight: 1.45 }}>{erro}</span>
+              <span style={{ fontSize: 13, color: 'var(--hif)', lineHeight: 1.45 }}>{erro}</span>
             </div>
           )}
 
@@ -406,7 +430,7 @@ export function Login() {
                     style={{
                       textAlign: 'left',
                       padding: '10px 11px',
-                      border: `1px solid ${escolhida ? '#c7d7fb' : 'var(--bd)'}`,
+                      border: `1px solid ${escolhida ? 'var(--acb)' : 'var(--bd)'}`,
                       background: escolhida ? 'var(--acl)' : 'var(--sf)',
                       borderRadius: 'var(--rd)',
                       cursor: 'pointer',

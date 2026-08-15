@@ -5,14 +5,15 @@ import { useAuth } from '../auth/AuthContext';
 import { Avatar } from '../components/Badges';
 import { Icone } from '../components/Icone';
 import { useRealtime, type EstadoConexao } from '../realtime/RealtimeContext';
+import { useTema } from '../styles/TemaContext';
 import { horaDe } from '../utils/formato';
 import { AlertaAltaPrioridade } from './AlertaAltaPrioridade';
 import { CentralNotificacoes } from './CentralNotificacoes';
 
 const CORES_CONEXAO: Record<EstadoConexao, { cor: string; rotulo: string }> = {
-  conectado: { cor: '#22c55e', rotulo: 'Conectado' },
-  conectando: { cor: '#f59e0b', rotulo: 'Conectando…' },
-  reconectando: { cor: '#f59e0b', rotulo: 'Reconectando…' },
+  conectado: { cor: 'var(--ok)', rotulo: 'Conectado' },
+  conectando: { cor: 'var(--warn)', rotulo: 'Conectando…' },
+  reconectando: { cor: 'var(--warn)', rotulo: 'Reconectando…' },
 };
 
 /**
@@ -32,6 +33,7 @@ function tituloDaRota(pathname: string, admin: boolean): string {
 export function AppShell() {
   const { usuario, admin, sair } = useAuth();
   const { conexao, metricas } = useRealtime();
+  const { efetivo, alternar } = useTema();
   const navegar = useNavigate();
   const local = useLocation();
 
@@ -68,7 +70,7 @@ export function AppShell() {
       <aside
         style={{
           width: 232,
-          background: '#0f172a',
+          background: 'var(--panel)',
           padding: '20px 14px',
           display: 'flex',
           flexDirection: 'column',
@@ -86,7 +88,7 @@ export function AppShell() {
             alignItems: 'center',
             gap: 10,
             padding: '0 8px 16px',
-            borderBottom: '1px solid #1e293b',
+            borderBottom: '1px solid var(--panel-bd)',
           }}
         >
           <span
@@ -94,8 +96,8 @@ export function AppShell() {
               width: 28,
               height: 28,
               borderRadius: 6,
-              background: 'var(--ac)',
-              color: '#fff',
+              background: 'var(--panel-ac)',
+              color: 'var(--panel-ac-fg)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -106,9 +108,9 @@ export function AppShell() {
             F
           </span>
           <span
-            style={{ color: '#fff', fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em' }}
+            style={{ color: 'var(--panel-fg)', fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em' }}
           >
-            FADEX <span style={{ color: '#94a3b8', fontWeight: 500 }}>Suporte</span>
+            FADEX <span style={{ color: 'var(--panel-mut)', fontWeight: 500 }}>Suporte</span>
           </span>
         </div>
 
@@ -126,8 +128,11 @@ export function AppShell() {
                 borderRadius: 6,
                 fontSize: 13.5,
                 fontWeight: isActive ? 700 : 500,
-                background: isActive ? 'var(--ac)' : 'transparent',
-                color: isActive ? '#fff' : '#cbd5e1',
+                // O item ativo usa o verde da marca, nao a cor interativa
+                // geral: sobre o painel escuro ele alcanca 9.45:1, e e o unico
+                // lugar da navegacao onde a marca aparece preenchendo area.
+                background: isActive ? 'var(--panel-ac)' : 'transparent',
+                color: isActive ? 'var(--panel-ac-fg)' : 'var(--panel-mut)',
                 textDecoration: 'none',
               })}
             >
@@ -139,7 +144,7 @@ export function AppShell() {
                       width: 6,
                       height: 6,
                       borderRadius: '50%',
-                      background: isActive ? '#fff' : '#475569',
+                      background: isActive ? 'var(--panel-ac-fg)' : 'var(--panel-dim)',
                       flex: 'none',
                     }}
                   />
@@ -152,8 +157,8 @@ export function AppShell() {
                         fontWeight: 700,
                         padding: '1px 6px',
                         borderRadius: 20,
-                        background: isActive ? 'rgba(255,255,255,.25)' : '#1e293b',
-                        color: isActive ? '#fff' : '#94a3b8',
+                        background: isActive ? 'var(--on-ac)' : 'var(--panel-bd)',
+                        color: isActive ? 'var(--panel-ac-fg)' : 'var(--panel-mut)',
                       }}
                     >
                       {item.contador}
@@ -166,7 +171,7 @@ export function AppShell() {
         </nav>
 
         {/* Indicador de tempo real */}
-        <div style={{ marginTop: 'auto', padding: '12px', borderTop: '1px solid #1e293b' }}>
+        <div style={{ marginTop: 'auto', padding: '12px', borderTop: '1px solid var(--panel-bd)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span
               aria-hidden="true"
@@ -178,9 +183,9 @@ export function AppShell() {
                 animation: conexao === 'conectado' ? 'pls 2.4s infinite' : 'none',
               }}
             />
-            <span style={{ fontSize: 12, color: '#94a3b8' }}>{conexaoAtual.rotulo}</span>
+            <span style={{ fontSize: 12, color: 'var(--panel-mut)' }}>{conexaoAtual.rotulo}</span>
           </div>
-          <p style={{ margin: '6px 0 0', fontSize: 11, color: '#64748b', lineHeight: 1.45 }}>
+          <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--panel-dim)', lineHeight: 1.45 }}>
             {metricas
               ? `Fila sincronizada · última atualização ${horaDe(metricas.atualizadoEm)}`
               : 'Atualização em tempo real'}
@@ -191,7 +196,7 @@ export function AppShell() {
       {menuMobile && (
         <div
           onClick={() => setMenuMobile(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', zIndex: 40 }}
+          style={{ position: 'fixed', inset: 0, background: 'var(--ovl)', zIndex: 40 }}
         />
       )}
 
@@ -202,7 +207,7 @@ export function AppShell() {
         <header
           style={{
             height: 60,
-            background: 'rgba(255,255,255,.92)',
+            background: 'var(--sf-blur)',
             backdropFilter: 'blur(6px)',
             borderBottom: '1px solid var(--bd)',
             display: 'flex',
@@ -229,6 +234,27 @@ export function AppShell() {
           </h1>
 
           <div style={{ flex: 1 }} />
+
+          {/* O icone mostra para onde a troca leva, nao onde se esta: e o
+              destino que o clique promete. */}
+          <button
+            type="button"
+            onClick={alternar}
+            title={efetivo === 'escuro' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
+            aria-label={
+              efetivo === 'escuro' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'
+            }
+            className="btn btn-secondary"
+            style={{
+              width: 34,
+              height: 34,
+              padding: 0,
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <Icone nome={efetivo === 'escuro' ? 'sol' : 'lua'} tamanho={16} traco={1.9} />
+          </button>
 
           <CentralNotificacoes />
 

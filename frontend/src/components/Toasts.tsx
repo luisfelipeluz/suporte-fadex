@@ -26,10 +26,10 @@ interface Toast {
 }
 
 const CORES: Record<TomToast, string> = {
-  info: '#2563eb',
-  sucesso: '#0f766e',
-  alerta: '#b45309',
-  erro: '#dc2626',
+  info: 'var(--ac)',
+  sucesso: 'var(--lo)',
+  alerta: 'var(--md)',
+  erro: 'var(--hi)',
 };
 
 const DURACAO_MS = 4200;

@@ -214,7 +214,7 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(15,23,42,.45)',
+        background: 'var(--ovl)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -453,7 +453,7 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
                               <span
                                 style={{
                                   fontSize: 11,
-                                  color: c.responsavel ? 'var(--ink2)' : '#94a3b8',
+                                  color: c.responsavel ? 'var(--ink2)' : 'var(--dim)',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',

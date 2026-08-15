@@ -11,7 +11,7 @@ import type {
   Usuario,
 } from '../api/tipos';
 import { useAuth } from '../auth/AuthContext';
-import { Avatar, OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
+import { Avatar, CORES_STATUS, OrigemBadge, PriorityBadge, StatusBadge } from '../components/Badges';
 import { Icone } from '../components/Icone';
 import {
   EstadoCarregando,
@@ -21,7 +21,7 @@ import {
 } from '../components/Estados';
 import { Modal } from '../components/Modal';
 import { useToasts } from '../components/Toasts';
-import {
+import { COR_EVENTO,
   dataCompleta,
   horaDe,
   ROTULO_CONFIANCA,
@@ -373,7 +373,7 @@ export function DetalheChamado() {
                         className="badge"
                         style={{
                           background: 'var(--ntl)',
-                          color: similar.statusCor,
+                          color: CORES_STATUS[similar.status].cor,
                           flexShrink: 0,
                         }}
                       >
@@ -399,9 +399,9 @@ export function DetalheChamado() {
                     <span
                       className="badge"
                       style={{
-                        border: `1px solid ${concluido ? '#b9e0d6' : atual ? '#c7d7fb' : 'var(--bd)'}`,
+                        border: `1px solid ${concluido ? 'var(--lob)' : atual ? 'var(--acb)' : 'var(--bd)'}`,
                         background: concluido ? 'var(--lol)' : atual ? 'var(--acl)' : 'transparent',
-                        color: concluido ? '#0b5f58' : atual ? 'var(--acd)' : '#94a3b8',
+                        color: concluido ? 'var(--lof)' : atual ? 'var(--acd)' : 'var(--dim)',
                       }}
                     >
                       {concluido ? (
@@ -412,7 +412,7 @@ export function DetalheChamado() {
                       {ROTULO_STATUS[s]}
                     </span>
                     {i < FLUXO.length - 1 && (
-                      <span aria-hidden="true" style={{ color: '#cbd5e1' }}>
+                      <span aria-hidden="true" style={{ color: 'var(--dim)' }}>
                         →
                       </span>
                     )}
@@ -512,7 +512,7 @@ export function DetalheChamado() {
                         width: 9,
                         height: 9,
                         borderRadius: '50%',
-                        background: evento.cor,
+                        background: COR_EVENTO[evento.tipo],
                         flexShrink: 0,
                         marginTop: 5,
                       }}
@@ -690,7 +690,7 @@ export function DetalheChamado() {
                   padding: 10,
                   borderRadius: 8,
                   background: 'var(--acl)',
-                  border: '1px solid #c7d7fb',
+                  border: '1px solid var(--acb)',
                 }}
               >
                 <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: 'var(--acd)' }}>
@@ -709,7 +709,7 @@ export function DetalheChamado() {
                   padding: 10,
                   borderRadius: 8,
                   background: t.divergente ? 'var(--mdl)' : 'var(--ntl)',
-                  border: `1px solid ${t.divergente ? '#f0d3a8' : 'var(--bd)'}`,
+                  border: `1px solid ${t.divergente ? 'var(--mdb)' : 'var(--bd)'}`,
                 }}
               >
                 <p
@@ -717,7 +717,7 @@ export function DetalheChamado() {
                     margin: 0,
                     fontSize: 11,
                     fontWeight: 700,
-                    color: t.divergente ? '#8a4008' : 'var(--ink2)',
+                    color: t.divergente ? 'var(--mdf)' : 'var(--ink2)',
                   }}
                 >
                   CLASSIFICAÇÃO FINAL
@@ -763,9 +763,9 @@ export function DetalheChamado() {
                 padding: '10px 12px',
                 borderRadius: 8,
                 background: t.revisada ? 'var(--lol)' : 'var(--ntl)',
-                border: `1px solid ${t.revisada ? '#b9e0d6' : 'var(--bd)'}`,
+                border: `1px solid ${t.revisada ? 'var(--lob)' : 'var(--bd)'}`,
                 fontSize: 12,
-                color: t.revisada ? '#0b5f58' : 'var(--ink2)',
+                color: t.revisada ? 'var(--lof)' : 'var(--ink2)',
               }}
             >
               {t.origem === 'MANUAL'
@@ -939,7 +939,7 @@ export function DetalheChamado() {
                           gap: 8,
                           padding: '8px 10px',
                           border: `1px solid ${
-                            chamado.responsavel?.id === r.id ? '#c7d7fb' : 'var(--bd)'
+                            chamado.responsavel?.id === r.id ? 'var(--acb)' : 'var(--bd)'
                           }`,
                           background:
                             chamado.responsavel?.id === r.id ? 'var(--acl)' : 'var(--sf)',

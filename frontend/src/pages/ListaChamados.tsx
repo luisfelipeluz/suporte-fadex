@@ -161,7 +161,7 @@ export function ListaChamados() {
               <Icone
                 nome="busca"
                 tamanho={15}
-                cor="#94a3b8"
+                cor="var(--dim)"
                 style={{ position: 'absolute', left: 11, pointerEvents: 'none' }}
               />
               <input
@@ -262,7 +262,7 @@ export function ListaChamados() {
                 style={{
                   background: 'var(--acl)',
                   color: 'var(--acd)',
-                  border: '1px solid #c7d7fb',
+                  border: '1px solid var(--acb)',
                   cursor: 'pointer',
                 }}
               >
@@ -338,7 +338,7 @@ export function ListaChamados() {
                         <StatusBadge status={c.status} />
                       </td>
                       {admin && <td>{c.solicitante.nome}</td>}
-                      <td style={{ color: c.responsavel ? 'var(--ink2)' : '#94a3b8' }}>
+                      <td style={{ color: c.responsavel ? 'var(--ink2)' : 'var(--dim)' }}>
                         {c.responsavel?.nome ?? 'Não atribuído'}
                       </td>
                       <td>

@@ -12,17 +12,17 @@ import { useRealtime } from '../realtime/RealtimeContext';
 import { dataRelativa, percentual } from '../utils/formato';
 
 const CORES_STATUS: Record<StatusChamado, string> = {
-  ABERTO: '#2563eb',
-  EM_ANDAMENTO: '#b45309',
-  RESOLVIDO: '#0f766e',
-  FECHADO: '#94a3b8',
-  CANCELADO: '#cbd5e1',
+  ABERTO: 'var(--ac)',
+  EM_ANDAMENTO: 'var(--md)',
+  RESOLVIDO: 'var(--lo)',
+  FECHADO: 'var(--dim)',
+  CANCELADO: 'var(--dim)',
 };
 
 const CORES_PRIORIDADE: Record<Prioridade, string> = {
-  ALTA: '#dc2626',
-  MEDIA: '#b45309',
-  BAIXA: '#0f766e',
+  ALTA: 'var(--hi)',
+  MEDIA: 'var(--md)',
+  BAIXA: 'var(--lo)',
 };
 
 const ORDEM_STATUS: StatusChamado[] = ['ABERTO', 'EM_ANDAMENTO', 'RESOLVIDO', 'FECHADO'];
@@ -80,24 +80,24 @@ export function Dashboard() {
   const total = metricas?.total ?? 0;
 
   const kpis = [
-    { rotulo: 'Total de chamados', valor: total, cor: '#2563eb', destaque: false },
-    { rotulo: 'Abertos', valor: metricas?.porStatus.ABERTO ?? 0, cor: '#2563eb', destaque: false },
+    { rotulo: 'Total de chamados', valor: total, cor: 'var(--ac)', destaque: false },
+    { rotulo: 'Abertos', valor: metricas?.porStatus.ABERTO ?? 0, cor: 'var(--ac)', destaque: false },
     {
       rotulo: 'Em andamento',
       valor: metricas?.porStatus.EM_ANDAMENTO ?? 0,
-      cor: '#b45309',
+      cor: 'var(--md)',
       destaque: false,
     },
     {
       rotulo: 'Resolvidos',
       valor: metricas?.porStatus.RESOLVIDO ?? 0,
-      cor: '#0f766e',
+      cor: 'var(--lo)',
       destaque: false,
     },
     {
       rotulo: 'Alta prioridade',
       valor: metricas?.altaPrioridadeEmAberto ?? 0,
-      cor: '#dc2626',
+      cor: 'var(--hi)',
       destaque: true,
     },
   ];
@@ -136,7 +136,7 @@ export function Dashboard() {
             className="badge"
             style={{
               background: conexao === 'conectado' ? 'var(--lol)' : 'var(--mdl)',
-              color: conexao === 'conectado' ? '#0b5f58' : '#8a4008',
+              color: conexao === 'conectado' ? 'var(--lof)' : 'var(--mdf)',
             }}
           >
             <span
@@ -145,7 +145,7 @@ export function Dashboard() {
                 width: 7,
                 height: 7,
                 borderRadius: '50%',
-                background: conexao === 'conectado' ? '#0f766e' : '#b45309',
+                background: conexao === 'conectado' ? 'var(--lo)' : 'var(--md)',
               }}
             />
             {conexao === 'conectado' ? 'Atualização em tempo real' : 'Reconectando…'}
@@ -176,7 +176,7 @@ export function Dashboard() {
             className="card"
             style={{
               padding: 16,
-              borderColor: kpi.destaque && kpi.valor > 0 ? '#f6c9c9' : 'var(--bd)',
+              borderColor: kpi.destaque && kpi.valor > 0 ? 'var(--hib)' : 'var(--bd)',
             }}
           >
             <div
@@ -212,7 +212,7 @@ export function Dashboard() {
                   lineHeight: 1,
                   letterSpacing: '-0.03em',
                   fontVariantNumeric: 'tabular-nums',
-                  color: kpi.destaque && kpi.valor > 0 ? '#b3261e' : 'var(--ink)',
+                  color: kpi.destaque && kpi.valor > 0 ? 'var(--hif)' : 'var(--ink)',
                 }}
               >
                 {kpi.valor}
@@ -221,7 +221,7 @@ export function Dashboard() {
                 style={{
                   fontSize: 11.5,
                   fontWeight: 600,
-                  color: kpi.destaque && kpi.valor > 0 ? '#b3261e' : 'var(--mut)',
+                  color: kpi.destaque && kpi.valor > 0 ? 'var(--hif)' : 'var(--mut)',
                 }}
               >
                 {kpi.destaque
@@ -458,7 +458,7 @@ export function Dashboard() {
                       <StatusBadge status={c.status} />
                     </td>
                     <td>{c.solicitante.nome}</td>
-                    <td style={{ color: c.responsavel ? 'var(--ink2)' : '#94a3b8' }}>
+                    <td style={{ color: c.responsavel ? 'var(--ink2)' : 'var(--dim)' }}>
                       {c.responsavel?.nome ?? 'Não atribuído'}
                     </td>
                     <td>

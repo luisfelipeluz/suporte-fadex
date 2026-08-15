@@ -58,7 +58,7 @@ export function EstadoVazio({
     <Moldura
       icone="busca"
       fundo="var(--ntl)"
-      cor="#94a3b8"
+      cor="var(--dim)"
       titulo={titulo}
       descricao={descricao}
       acao={acao}
@@ -83,7 +83,7 @@ export function EstadoNaoEncontrado() {
     <Moldura
       icone="busca"
       fundo="var(--ntl)"
-      cor="#94a3b8"
+      cor="var(--dim)"
       titulo="Chamado não encontrado"
       descricao="O chamado que você tentou abrir não existe ou foi removido."
     />

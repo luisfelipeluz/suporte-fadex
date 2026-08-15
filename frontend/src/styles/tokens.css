@@ -1,40 +1,105 @@
 /* =============================================================================
    Tokens do design system
    =============================================================================
-   Definidos a partir do design de referência, para que a implementação seja
-   fiel a ele em vez de uma reinterpretação.
+   Paleta da FADEX: verde-limao (#B5D334) como marca e ardosia azulada
+   (#455B63) como cor estrutural, sobre neutros quase brancos.
+
+   A regra que organiza o uso das duas vem do contraste, nao do gosto:
+
+     o verde tem 1.70:1 sobre branco — nao serve para letra nenhuma;
+     o mesmo verde tem 9.45:1 carregando texto escuro.
+
+   Entao o verde e cor de AREA CHEIA (botao primario, item ativo do menu,
+   destaque sobre o painel escuro), nunca de texto. Quem carrega texto e a
+   ardosia, com 7.17:1 sobre branco. Trocar os papeis dos dois deixaria a
+   interface bonita e ilegivel.
+
+   O tema escuro e derivado: a marca e a mesma, o que inverte sao os neutros e
+   as cores de estado.
+
+   REGRA: nenhum componente escreve cor literal. Toda cor sai daqui, senao ela
+   nao acompanha a troca de tema.
+
+   Os tres estados do seletor de tema:
+     :root                         -> tema claro (padrao)
+     @media (prefers-color-scheme)  -> segue o sistema, se o usuario nao escolheu
+     [data-theme="dark|light"]      -> escolha explicita, vence o sistema
    ========================================================================== */
 
 :root {
-  /* Marca */
-  --ac: #2563eb; /* azul primário */
-  --acd: #1d4ed8; /* azul escuro */
-  --acl: #eef4ff; /* azul claro (fundos) */
+  /* --- Marca ------------------------------------------------------------ */
+  /* A ardosia e a cor interativa: links, icones, item ativo, status ABERTO. */
+  --ac: #455b63;
+  --acd: #35474d;
+  --acl: #e9eeef;
+  --acb: #c7d3d6;
+  --acf: #34464c;
 
-  /* Texto e superfícies */
-  --ink: #0f172a; /* tinta */
-  --ink2: #334155; /* texto secundário */
-  --mut: #64748b; /* neutro */
-  --bd: #e3e8f0; /* borda */
-  --bg: #f4f6fa; /* fundo da aplicação */
-  --sf: #ffffff; /* superfície de card */
+  /* O verde da marca. So aparece preenchendo area, com texto escuro por cima. */
+  --btn: #b5d334;
+  --btn-fg: #202124;
+  --btn-hover: #a7c62a;
 
-  /* Cores semânticas de prioridade */
-  --hi: #dc2626; /* ALTA */
-  --hil: #fdecec;
-  --md: #b45309; /* MÉDIA */
-  --mdl: #fdf3e4;
-  --lo: #0f766e; /* BAIXA */
-  --lol: #e7f5f2;
+  /* --- Texto e superficies ---------------------------------------------- */
+  --ink: #202124;
+  --ink2: #3d474b;
+  --mut: #667278;
+  --dim: #97a2a6;
+  --bd: #dde3e1;
+  --bd2: #c6cfcc;
+  --bg: #f3f5f4;
+  --sf: #ffffff;
+  --sf2: #f8faf9;
+  --skel: #eaeeed;
 
-  /* Neutros de estado */
-  --nt: #64748b;
-  --ntl: #f1f5f9;
+  /* --- Painel escuro (barra lateral e apresentacao da entrada) ---------- */
+  /* Continua escuro nos dois temas: e a ancora visual da marca. E onde o
+     verde rende mais, porque sobre o escuro ele alcanca 9.45:1. */
+  --panel: #202124;
+  --panel-bd: #34363a;
+  --panel-fg: #f0f2f1;
+  --panel-mut: #b4bcbe;
+  --panel-dim: #7c868a;
+  --panel-ac: #b5d334;
+  --panel-ac-fg: #202124;
 
-  /* Forma */
+  /* Texto sobre area cheia da ardosia. */
+  --ac-fg: #ffffff;
+
+  /* --- Prioridade e estado ---------------------------------------------- */
+  --hi: #c0453b; /* ALTA */
+  --hil: #fbedec;
+  --hib: #f0cfcc;
+  --hif: #9a362e;
+
+  --md: #b07d22; /* MEDIA */
+  --mdl: #fdf4e5;
+  --mdb: #efdcb4;
+  --mdf: #8a611b;
+
+  /* Verde fechado, de proposito distante do verde da marca: se BAIXA usasse o
+     mesmo tom do botao, o olho leria os dois como a mesma coisa. */
+  --lo: #3e7d52;
+  --lol: #eaf3ec;
+  --lob: #c3decb;
+  --lof: #2f6440;
+
+  --nt: #667278;
+  --ntl: #f0f2f2;
+
+  /* --- Sinais de conexao ------------------------------------------------ */
+  --ok: #3e7d52;
+  --warn: #b07d22;
+
+  /* --- Camadas e sobreposicoes ------------------------------------------ */
+  --ovl: rgba(32, 33, 36, 0.45);
+  --sf-blur: rgba(255, 255, 255, 0.92);
+  --on-ac: rgba(255, 255, 255, 0.25);
+
+  /* --- Forma ------------------------------------------------------------ */
   --rd: 8px;
 
-  /* Espaçamento */
+  /* --- Espacamento ------------------------------------------------------ */
   --sp1: 4px;
   --sp2: 8px;
   --sp3: 12px;
@@ -42,35 +107,177 @@
   --sp5: 24px;
   --sp6: 32px;
 
-  /* Sombras */
-  --sh1: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --sh2: 0 4px 12px rgba(15, 23, 42, 0.08);
-  --sh3: 0 12px 32px rgba(15, 23, 42, 0.16);
+  /* --- Sombras ---------------------------------------------------------- */
+  --sh1: 0 1px 2px rgba(32, 33, 36, 0.06);
+  --sh2: 0 4px 12px rgba(32, 33, 36, 0.08);
+  --sh3: 0 12px 32px rgba(32, 33, 36, 0.16);
+
+  /* --- Pulsos (dependem da cor, entao mudam com o tema) ----------------- */
+  --pls-de: rgba(181, 211, 52, 0.5);
+  --pls-para: rgba(181, 211, 52, 0);
+  --plsr-de: rgba(192, 69, 59, 0.5);
+  --plsr-para: rgba(192, 69, 59, 0);
 }
 
-/* --- Animações reaproveitadas do protótipo ------------------------------- */
+/* --- Tema escuro: segue o sistema quando nao ha escolha explicita -------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ac: #8fa9b2;
+    --acd: #a8bec6;
+    --acl: #2c3439;
+    --acb: #45585f;
+    --acf: #a8bec6;
+
+    --btn: #b5d334;
+    --btn-fg: #202124;
+    --btn-hover: #c2dc50;
+
+    --ink: #f0f2f1;
+    --ink2: #c3c9cb;
+    --mut: #98a2a6;
+    --dim: #7a8488;
+    --bd: #3f4347;
+    --bd2: #4e5357;
+    --bg: #202124;
+    --sf: #2a2c30;
+    --sf2: #33363a;
+    --skel: #383b3f;
+
+    --panel: #1a1b1e;
+    --panel-bd: #303236;
+    --panel-fg: #f0f2f1;
+    --panel-mut: #b4bcbe;
+    --panel-dim: #7c868a;
+    --panel-ac: #b5d334;
+    --panel-ac-fg: #202124;
+    --ac-fg: #202124;
+
+    --hi: #e4726a;
+    --hil: #3b2422;
+    --hib: #6d3a35;
+    --hif: #f0a49e;
+
+    --md: #e0ae4a;
+    --mdl: #3a3120;
+    --mdb: #6b5a2e;
+    --mdf: #edc879;
+
+    --lo: #6bbe85;
+    --lol: #22392b;
+    --lob: #3d6b4c;
+    --lof: #97d6aa;
+
+    --nt: #98a2a6;
+    --ntl: #2f3236;
+
+    --ok: #6bbe85;
+    --warn: #e0ae4a;
+
+    --ovl: rgba(10, 11, 12, 0.6);
+    --sf-blur: rgba(32, 33, 36, 0.92);
+    --on-ac: rgba(255, 255, 255, 0.18);
+
+    --sh1: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --sh2: 0 4px 12px rgba(0, 0, 0, 0.38);
+    --sh3: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+    --pls-de: rgba(181, 211, 52, 0.5);
+    --pls-para: rgba(181, 211, 52, 0);
+    --plsr-de: rgba(228, 114, 106, 0.55);
+    --plsr-para: rgba(228, 114, 106, 0);
+  }
+}
+
+/* --- Tema escuro: escolha explicita, vence a preferencia do sistema ------ */
+:root[data-theme='dark'] {
+  --ac: #8fa9b2;
+  --acd: #a8bec6;
+  --acl: #2c3439;
+  --acb: #45585f;
+  --acf: #a8bec6;
+
+  --btn: #b5d334;
+  --btn-fg: #202124;
+  --btn-hover: #c2dc50;
+
+  --ink: #f0f2f1;
+  --ink2: #c3c9cb;
+  --mut: #98a2a6;
+  --dim: #7a8488;
+  --bd: #3f4347;
+  --bd2: #4e5357;
+  --bg: #202124;
+  --sf: #2a2c30;
+  --sf2: #33363a;
+  --skel: #383b3f;
+
+  --panel: #1a1b1e;
+  --panel-bd: #303236;
+  --panel-fg: #f0f2f1;
+  --panel-mut: #b4bcbe;
+  --panel-dim: #7c868a;
+  --panel-ac: #b5d334;
+  --panel-ac-fg: #202124;
+  --ac-fg: #202124;
+
+  --hi: #e4726a;
+  --hil: #3b2422;
+  --hib: #6d3a35;
+  --hif: #f0a49e;
+
+  --md: #e0ae4a;
+  --mdl: #3a3120;
+  --mdb: #6b5a2e;
+  --mdf: #edc879;
+
+  --lo: #6bbe85;
+  --lol: #22392b;
+  --lob: #3d6b4c;
+  --lof: #97d6aa;
+
+  --nt: #98a2a6;
+  --ntl: #2f3236;
+
+  --ok: #6bbe85;
+  --warn: #e0ae4a;
+
+  --ovl: rgba(10, 11, 12, 0.6);
+  --sf-blur: rgba(32, 33, 36, 0.92);
+  --on-ac: rgba(255, 255, 255, 0.18);
+
+  --sh1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh2: 0 4px 12px rgba(0, 0, 0, 0.38);
+  --sh3: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  --pls-de: rgba(181, 211, 52, 0.5);
+  --pls-para: rgba(181, 211, 52, 0);
+  --plsr-de: rgba(228, 114, 106, 0.55);
+  --plsr-para: rgba(228, 114, 106, 0);
+}
+
+/* --- Animacoes reaproveitadas do prototipo ------------------------------- */
 
 @keyframes pls {
   0% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45);
+    box-shadow: 0 0 0 0 var(--pls-de);
   }
   70% {
-    box-shadow: 0 0 0 7px rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 7px var(--pls-para);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 0 var(--pls-para);
   }
 }
 
 @keyframes plsr {
   0% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
+    box-shadow: 0 0 0 0 var(--plsr-de);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+    box-shadow: 0 0 0 8px var(--plsr-para);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    box-shadow: 0 0 0 0 var(--plsr-para);
   }
 }
 
@@ -111,16 +318,5 @@
 @keyframes bar {
   from {
     width: 0;
-  }
-}
-
-/* Respeita quem prefere menos movimento. */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }

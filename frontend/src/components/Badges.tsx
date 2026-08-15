@@ -10,18 +10,18 @@ import { ICONE_STATUS, ROTULO_PRIORIDADE, ROTULO_STATUS } from '../utils/formato
 import { Icone } from './Icone';
 
 const CORES_PRIORIDADE: Record<Prioridade, { bg: string; fg: string; ponto: string }> = {
-  ALTA: { bg: 'var(--hil)', fg: '#b3261e', ponto: '#dc2626' },
-  MEDIA: { bg: 'var(--mdl)', fg: '#8a4008', ponto: '#b45309' },
-  BAIXA: { bg: 'var(--lol)', fg: '#0b5f58', ponto: '#0f766e' },
+  ALTA: { bg: 'var(--hil)', fg: 'var(--hif)', ponto: 'var(--hi)' },
+  MEDIA: { bg: 'var(--mdl)', fg: 'var(--mdf)', ponto: 'var(--md)' },
+  BAIXA: { bg: 'var(--lol)', fg: 'var(--lof)', ponto: 'var(--lo)' },
 };
 
 /** Exportado para que o quadro Kanban pinte as colunas com as mesmas cores dos badges. */
 export const CORES_STATUS: Record<StatusChamado, { bg: string; fg: string; cor: string }> = {
-  ABERTO: { bg: 'var(--acl)', fg: '#1a4fbd', cor: '#2563eb' },
-  EM_ANDAMENTO: { bg: 'var(--mdl)', fg: '#8a4008', cor: '#b45309' },
-  RESOLVIDO: { bg: 'var(--lol)', fg: '#0b5f58', cor: '#0f766e' },
-  FECHADO: { bg: 'var(--ntl)', fg: '#475569', cor: '#94a3b8' },
-  CANCELADO: { bg: 'var(--ntl)', fg: '#475569', cor: '#94a3b8' },
+  ABERTO: { bg: 'var(--acl)', fg: 'var(--acf)', cor: 'var(--ac)' },
+  EM_ANDAMENTO: { bg: 'var(--mdl)', fg: 'var(--mdf)', cor: 'var(--md)' },
+  RESOLVIDO: { bg: 'var(--lol)', fg: 'var(--lof)', cor: 'var(--lo)' },
+  FECHADO: { bg: 'var(--ntl)', fg: 'var(--mut)', cor: 'var(--dim)' },
+  CANCELADO: { bg: 'var(--ntl)', fg: 'var(--mut)', cor: 'var(--dim)' },
 };
 
 export function PriorityBadge({ prioridade }: { prioridade: Prioridade }) {
@@ -62,7 +62,7 @@ export function OrigemBadge({ origem }: { origem: OrigemClassificacao }) {
       style={{
         background: ia ? 'var(--acl)' : 'var(--ntl)',
         color: ia ? 'var(--acd)' : 'var(--ink2)',
-        border: `1px solid ${ia ? '#c7d7fb' : 'var(--bd)'}`,
+        border: `1px solid ${ia ? 'var(--acb)' : 'var(--bd)'}`,
       }}
       title={ia ? 'Classificado automaticamente pela IA' : 'Classificação ajustada manualmente'}
     >
