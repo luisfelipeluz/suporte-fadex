@@ -24,6 +24,7 @@ Solução para o desafio técnico da **FADEX** — vaga de Analista de Desenvolv
 
 ## Sumário
 
+- [Interface](#interface)
 - [Como executar](#como-executar)
 - [Credenciais de teste](#credenciais-de-teste)
 - [Tecnologias](#tecnologias)
@@ -38,6 +39,48 @@ Solução para o desafio técnico da **FADEX** — vaga de Analista de Desenvolv
 - [Testes automatizados](#testes-automatizados)
 - [Decisões de projeto](#decisões-de-projeto)
 - [Segurança](#segurança)
+
+---
+
+## Interface
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/img/1.png" alt="Tela de triagem concluída, exibindo categoria, prioridade e confiança sugeridas, a justificativa da decisão e os chamados possivelmente duplicados" width="100%">
+      <p align="center"><strong>Triagem automática</strong><br>
+      <sub>Categoria, prioridade e confiança sugeridas a partir do texto, com a justificativa
+      da decisão e os possíveis duplicados. À direita, o alerta de ALTA chegando por SSE.</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/img/2.png" alt="Painel de indicadores com contagem por status e prioridade e a proporção de chamados classificados por cada motor de triagem" width="100%">
+      <p align="center"><strong>Painel em tempo real</strong><br>
+      <sub>Contagem por status e prioridade, atualizada sem recarregar a página. Abaixo,
+      quanto da triagem saiu de cada motor — heurística local e Gemini.</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/img/3.png" alt="Detalhe do chamado com histórico cronológico e o painel de revisão comparando a sugestão da IA com a classificação final" width="100%">
+      <p align="center"><strong>Detalhe do chamado</strong><br>
+      <sub>Histórico cronológico do que aconteceu e a revisão da classificação: a sugestão
+      da IA fica lado a lado com a final, e o ADMIN aceita ou corrige.</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/img/4.png" alt="Listagem de chamados com os filtros de status ABERTO e prioridade ALTA aplicados simultaneamente" width="100%">
+      <p align="center"><strong>Listagem com filtros</strong><br>
+      <sub>Filtros por status, prioridade e categoria combinados, com busca e paginação.
+      A coluna <em>Classificação</em> separa o que veio da IA do que foi ajustado à mão.</sub></p>
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/img/5.png" alt="Quadro Kanban com as colunas Aberto, Em andamento, Resolvido e Fechado, e os chamados distribuídos entre elas" width="100%">
+  <br><strong>Quadro Kanban</strong><br>
+  <sub>Arrastar um cartão move o chamado para a coluna vizinha, nos dois sentidos e uma etapa
+  por vez. Encerrar é direto de qualquer etapa — e chamado fechado não reabre.</sub>
+</p>
 
 ---
 
