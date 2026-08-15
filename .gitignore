@@ -55,3 +55,7 @@ desktop.ini
 logs/
 tmp/
 temp/
+
+# --- Documentos de trabalho (nao fazem parte da entrega) ---
+docs/ESPECIFICACAO.md
+docs/PROMPT-UI-UX.md
