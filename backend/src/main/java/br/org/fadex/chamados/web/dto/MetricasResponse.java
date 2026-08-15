@@ -26,10 +26,25 @@ public record MetricasResponse(
         @Schema(description = "Quantidade por origem da classificação")
         Map<OrigemClassificacao, Long> porOrigem,
 
+        @Schema(
+                description =
+                        "Quantidade por mecanismo que produziu a triagem (`heuristic`, `gemini`). "
+                                + "Diferente de `porOrigem`, que separa apenas automático de manual: "
+                                + "um chamado classificado pela heurística local também conta como "
+                                + "origem IA. É aqui que se vê quanto da triagem passou de fato por "
+                                + "um modelo externo.",
+                example = "{\"gemini\": 18, \"heuristic\": 24}")
+        Map<String, Long> porProvedorTriagem,
+
         @Schema(description = "Chamados de prioridade ALTA ainda não encerrados", example = "5")
         long altaPrioridadeEmAberto,
 
-        @Schema(description = "Percentual de chamados classificados pela IA", example = "83")
+        @Schema(
+                description =
+                        "Percentual de chamados classificados automaticamente, por qualquer "
+                                + "provider de triagem — inclui a heurística local. Para saber "
+                                + "quanto veio de IA externa, use `porProvedorTriagem`.",
+                example = "83")
         int percentualClassificadoPorIa,
 
         @Schema(description = "Momento do cálculo") Instant atualizadoEm) {}

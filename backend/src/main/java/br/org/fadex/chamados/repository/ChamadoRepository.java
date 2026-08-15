@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -77,4 +79,30 @@ public interface ChamadoRepository
 
     long countByPrioridadeAndStatusNotInAndSolicitante(
             Prioridade prioridade, Collection<StatusChamado> encerrados, Usuario solicitante);
+
+    // --- Contagem por mecanismo de triagem ------------------------------------
+    //
+    // Agrupada na consulta, e nao enumerada em codigo como as demais: o provedor
+    // e um nome livre, definido por configuracao, e nao um enum fechado. Chamados
+    // anteriores ao registro do provedor ficam sob 'desconhecido' em vez de sumir
+    // da soma.
+
+    @Query(
+            """
+            select new br.org.fadex.chamados.repository.ContagemPorProvedor(
+                       coalesce(c.provedorTriagem, 'desconhecido'), count(c))
+              from Chamado c
+             group by c.provedorTriagem
+            """)
+    List<ContagemPorProvedor> contarPorProvedorTriagem();
+
+    @Query(
+            """
+            select new br.org.fadex.chamados.repository.ContagemPorProvedor(
+                       coalesce(c.provedorTriagem, 'desconhecido'), count(c))
+              from Chamado c
+             where c.solicitante = :solicitante
+             group by c.provedorTriagem
+            """)
+    List<ContagemPorProvedor> contarPorProvedorTriagem(@Param("solicitante") Usuario solicitante);
 }

@@ -104,6 +104,36 @@ class MetricasETempoRealTest {
         }
 
         @Test
+        @DisplayName("separa o mecanismo da triagem da origem da classificação")
+        void contabilizaPorProvedorDeTriagem() throws Exception {
+            criar(tokenJoao, "Impressora não imprime", "A impressora parou e o setor inteiro está sem imprimir.");
+            criar(tokenJoao, "Solicitação de acesso ao Drive", "Preciso de permissão na pasta do projeto.");
+
+            // Os dois contam como origem IA — "classificado automaticamente" —, mas
+            // quem classificou foi a heuristica local. Confundir as duas coisas faria
+            // o painel anunciar uso de IA que nunca aconteceu.
+            mockMvc.perform(autenticado(get("/api/dashboard/metricas"), tokenAdmin))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.porOrigem.IA").value(2))
+                    .andExpect(jsonPath("$.porProvedorTriagem.heuristic").value(2))
+                    .andExpect(jsonPath("$.porProvedorTriagem.gemini").doesNotExist());
+        }
+
+        @Test
+        @DisplayName("a contagem por provedor respeita o recorte do solicitante")
+        void provedorRespeitaVisibilidade() throws Exception {
+            criar(tokenJoao, "Impressora não imprime", "A impressora parou e o setor inteiro está sem imprimir.");
+            criar(token("beatriz.rocha@fadex.org.br"), "Erro no sistema financeiro",
+                    "O módulo de pagamentos retorna erro 500.");
+
+            mockMvc.perform(autenticado(get("/api/dashboard/metricas"), tokenAdmin))
+                    .andExpect(jsonPath("$.porProvedorTriagem.heuristic").value(2));
+
+            mockMvc.perform(autenticado(get("/api/dashboard/metricas"), tokenJoao))
+                    .andExpect(jsonPath("$.porProvedorTriagem.heuristic").value(1));
+        }
+
+        @Test
         @DisplayName("o indicador de ALTA conta apenas chamados ainda não encerrados")
         void altaPrioridadeIgnoraEncerrados() throws Exception {
             long id = criar(tokenJoao, "Impressora não imprime", "A impressora parou e o setor inteiro está sem imprimir.");

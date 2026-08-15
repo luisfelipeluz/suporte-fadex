@@ -149,6 +149,13 @@ export interface Metricas {
   porStatus: Record<StatusChamado, number>;
   porPrioridade: Record<Prioridade, number>;
   porOrigem: Record<OrigemClassificacao, number>;
+  /**
+   * Quantidade por mecanismo que produziu a triagem (`heuristic`, `gemini`).
+   *
+   * Chave livre, e não um enum: o provider é definido por configuração no
+   * backend, e um nome novo não deve exigir alteração de tipo aqui.
+   */
+  porProvedorTriagem: Record<string, number>;
   altaPrioridadeEmAberto: number;
   percentualClassificadoPorIa: number;
   atualizadoEm: string;

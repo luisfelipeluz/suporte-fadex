@@ -5,14 +5,18 @@ import br.org.fadex.chamados.domain.Prioridade;
 import br.org.fadex.chamados.domain.StatusChamado;
 import br.org.fadex.chamados.domain.Usuario;
 import br.org.fadex.chamados.repository.ChamadoRepository;
+import br.org.fadex.chamados.repository.ContagemPorProvedor;
 import br.org.fadex.chamados.web.dto.MetricasResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Calculo dos indicadores do dashboard.
@@ -66,17 +70,42 @@ public class MetricasService {
 
         long altaEmAberto = contarAltaEmAberto(usuario, global);
 
-        long classificadosPorIa = porOrigem.getOrDefault(OrigemClassificacao.IA, 0L);
-        int percentualIa = total == 0 ? 0 : Math.round(classificadosPorIa * 100f / total);
+        long classificadosAutomaticamente = porOrigem.getOrDefault(OrigemClassificacao.IA, 0L);
+        int percentualAutomatico =
+                total == 0 ? 0 : Math.round(classificadosAutomaticamente * 100f / total);
 
         return new MetricasResponse(
                 total,
                 porStatus,
                 porPrioridade,
                 porOrigem,
+                contarPorProvedor(usuario, global),
                 altaEmAberto,
-                percentualIa,
+                percentualAutomatico,
                 Instant.now());
+    }
+
+    /**
+     * Quantos chamados cada mecanismo de triagem classificou.
+     *
+     * <p>Do maior para o menor, para que a interface exiba o mecanismo dominante
+     * primeiro sem precisar reordenar. {@link LinkedHashMap} porque essa ordem
+     * precisa sobreviver a serializacao para JSON.
+     */
+    private Map<String, Long> contarPorProvedor(Usuario usuario, boolean global) {
+        List<ContagemPorProvedor> contagens =
+                global
+                        ? chamadoRepository.contarPorProvedorTriagem()
+                        : chamadoRepository.contarPorProvedorTriagem(usuario);
+
+        return contagens.stream()
+                .sorted(Comparator.comparing(ContagemPorProvedor::total).reversed())
+                .collect(
+                        Collectors.toMap(
+                                ContagemPorProvedor::provedor,
+                                ContagemPorProvedor::total,
+                                (a, b) -> a,
+                                LinkedHashMap::new));
     }
 
     private long contarStatus(StatusChamado status, Usuario usuario, boolean global) {

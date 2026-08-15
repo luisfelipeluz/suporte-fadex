@@ -100,3 +100,28 @@ export const ICONE_STATUS: Record<StatusChamado, string> = {
 export function percentual(parte: number, total: number): number {
   return total === 0 ? 0 : Math.round((parte / total) * 100);
 }
+
+/** Nome legível de cada mecanismo de triagem. */
+const ROTULO_PROVEDOR: Record<string, string> = {
+  gemini: 'Gemini',
+  heuristic: 'Heurística local',
+  // Devolvido quando nem o provider configurado nem a heurística responderam.
+  indisponivel: 'Indisponível',
+  // Chamados anteriores ao registro do provedor.
+  desconhecido: 'Não registrado',
+};
+
+/**
+ * Rótulo do provider de triagem.
+ *
+ * A chave vem livre da API — o provider é configurável no backend —, então um
+ * nome desconhecido é exibido como veio, em vez de sumir da tela.
+ */
+export function rotuloProvedor(nome: string): string {
+  return ROTULO_PROVEDOR[nome] ?? nome;
+}
+
+/** Identifica os providers que representam IA externa de verdade. */
+export function ehIaExterna(nome: string): boolean {
+  return nome === 'gemini';
+}

@@ -9,7 +9,7 @@ import { EstadoErro, EstadoVazio, EsqueletoLinhas } from '../components/Estados'
 import { Icone } from '../components/Icone';
 import { QuadroKanban } from '../components/QuadroKanban';
 import { useRealtime } from '../realtime/RealtimeContext';
-import { dataRelativa, percentual } from '../utils/formato';
+import { dataRelativa, ehIaExterna, percentual, rotuloProvedor } from '../utils/formato';
 
 const CORES_STATUS: Record<StatusChamado, string> = {
   ABERTO: 'var(--ac)',
@@ -371,7 +371,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          <p
+          <div
             style={{
               margin: '16px 0 0',
               paddingTop: 12,
@@ -380,12 +380,57 @@ export function Dashboard() {
               color: 'var(--mut)',
             }}
           >
-            <strong style={{ color: 'var(--acd)' }}>
-              {metricas?.percentualClassificadoPorIa ?? 0}%
-            </strong>{' '}
-            dos chamados foram classificados automaticamente pela IA
-            {metricas ? ` · ${metricas.porOrigem.MANUAL} ajustados manualmente` : ''}.
-          </p>
+            {/* "Automaticamente" e não "pela IA": a heurística local também
+                classifica sozinha, e contá-la como IA anunciaria um uso de
+                modelo que pode não ter acontecido nenhuma vez. */}
+            <p style={{ margin: 0 }}>
+              <strong style={{ color: 'var(--acd)' }}>
+                {metricas?.percentualClassificadoPorIa ?? 0}%
+              </strong>{' '}
+              dos chamados foram classificados automaticamente
+              {metricas ? ` · ${metricas.porOrigem.MANUAL} ajustados manualmente` : ''}.
+            </p>
+
+            {/* Qual mecanismo de fato classificou. Sem isto, uma IA fora do ar
+                passa despercebida: o fallback para a heurística é silencioso. */}
+            {metricas && Object.keys(metricas.porProvedorTriagem).length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  flexWrap: 'wrap',
+                  marginTop: 10,
+                }}
+              >
+                <span style={{ fontSize: 12 }}>Motor da triagem:</span>
+
+                {Object.entries(metricas.porProvedorTriagem).map(([provedor, quantidade]) => {
+                  const ia = ehIaExterna(provedor);
+                  return (
+                    <span
+                      key={provedor}
+                      className="badge"
+                      title={`${quantidade} de ${total} chamado${total === 1 ? '' : 's'} classificado${
+                        quantidade === 1 ? '' : 's'
+                      } por ${rotuloProvedor(provedor)}`}
+                      style={{
+                        background: ia ? 'var(--acl)' : 'var(--ntl)',
+                        color: ia ? 'var(--acd)' : 'var(--ink2)',
+                        border: `1px solid ${ia ? 'var(--acb)' : 'var(--bd)'}`,
+                      }}
+                    >
+                      {rotuloProvedor(provedor)}
+                      <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{quantidade}</strong>
+                      <span style={{ opacity: 0.75 }}>
+                        ({percentual(quantidade, total)}%)
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </section>
       </div>
 
