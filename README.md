@@ -74,7 +74,9 @@ Não é preciso criar `.env` nem instalar Java, Node ou MySQL: só Docker.
 
 ### Opção 2 — Execução local
 
-**Pré-requisitos:** JDK 21, Maven 3.9+, Node 20+, e um MySQL 8 acessível.
+**Pré-requisitos:** JDK 21, Node 20+, e um MySQL 8 acessível. **Maven não precisa estar
+instalado** — o projeto traz o Maven Wrapper (`./mvnw`), que baixa a versão correta na primeira
+execução.
 
 ```bash
 # 1. Só o banco em container, publicado no host em localhost:3307
@@ -82,7 +84,7 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up -d mysql
 
 # 2. Backend  → http://localhost:8080
 cd backend
-mvn spring-boot:run
+./mvnw spring-boot:run      # Windows: .\mvnw.cmd spring-boot:run
 
 # 3. Frontend → http://localhost:5173
 cd ../frontend
@@ -100,11 +102,11 @@ CORS no fluxo do dia a dia.
 > costuma já estar ocupada por um MySQL instalado localmente.
 
 > **O `.env` não vale aqui.** Ler `.env` é comportamento do Docker Compose, não do Spring nem do
-> Vite — `mvn spring-boot:run` ignora o arquivo por completo. Nesta opção, o backend usa os padrões
-> do `application.yml` (que já apontam para `localhost:3307`); para mudar qualquer coisa —
+> Vite — `./mvnw spring-boot:run` ignora o arquivo por completo. Nesta opção, o backend usa os
+> padrões do `application.yml` (que já apontam para `localhost:3307`); para mudar qualquer coisa —
 > credenciais, provider de IA — exporte no ambiente do processo:
 > ```powershell
-> $env:TRIAGE_PROVIDER='gemini'; $env:GEMINI_API_KEY='sua-chave'; mvn spring-boot:run
+> $env:TRIAGE_PROVIDER='gemini'; $env:GEMINI_API_KEY='sua-chave'; .\mvnw.cmd spring-boot:run
 > ```
 
 ### Variáveis de ambiente
@@ -209,7 +211,7 @@ prioridades e as duas origens de classificação — o painel abre populado.
 | Documentação | **springdoc-openapi (Swagger UI)** | API navegável e testável pelo navegador |
 | Tempo real | **Server-Sent Events** | Fluxo unidirecional servidor → painel, que é exatamente o caso de uso |
 | Frontend | **React 19 + Vite + TypeScript** | Tipagem casa o contrato com os DTOs do backend |
-| Testes | **JUnit 5 + MockMvc + H2** | `mvn test` roda sem Docker e sem MySQL instalado |
+| Testes | **JUnit 5 + MockMvc + H2** | `./mvnw test` roda sem Docker e sem MySQL instalado |
 
 ---
 
@@ -392,10 +394,10 @@ Motor da triagem:  [Heurística local 23 (85%)]  [Gemini 4 (15%)]
 
 **Duas armadilhas de configuração que valem o aviso:**
 
-1. **`mvn spring-boot:run` não lê o `.env`.** Esse arquivo é convenção do Docker Compose, não do
+1. **`./mvnw spring-boot:run` não lê o `.env`.** Esse arquivo é convenção do Docker Compose, não do
    Spring. Rodando o backend direto no host, exporte as variáveis no ambiente do processo antes:
    ```powershell
-   $env:TRIAGE_PROVIDER='gemini'; $env:GEMINI_API_KEY='sua-chave'; mvn spring-boot:run
+   $env:TRIAGE_PROVIDER='gemini'; $env:GEMINI_API_KEY='sua-chave'; .\mvnw.cmd spring-boot:run
    ```
    Via `docker compose up`, o `.env` é lido automaticamente e nada disso é necessário.
 
@@ -655,10 +657,10 @@ Toda resposta de erro usa o mesmo formato `ApiError`
 ## Testes automatizados
 
 ```bash
-cd backend && mvn test
+cd backend && ./mvnw test      # Windows: .\mvnw.cmd test
 ```
 
-**121 testes**, rodando em **H2 no modo MySQL** — sem Docker e sem MySQL instalado. A suíte executa
+**130 testes**, rodando em **H2 no modo MySQL** — sem Docker e sem MySQL instalado. A suíte executa
 as **mesmas migrations Flyway** do ambiente real, com `ddl-auto=validate`: qualquer divergência
 entre uma coluna e o campo JPA correspondente derruba o build.
 
