@@ -6,13 +6,15 @@ sistema classifica a solicitação a partir do texto, e a equipe de suporte é n
 
 Solução para o desafio técnico da **FADEX** — vaga de Analista de Desenvolvimento.
 
-> **🚀 API no ar, sem instalar nada:**
-> [**Swagger UI**](https://suporte-fadex-production.up.railway.app/swagger-ui/index.html) ·
-> autentique com `ana.souza@fadex.org.br` / `suporte123` e teste todos os endpoints pelo navegador.
-> O banco já vem populado pelas migrations.
+> **🚀 No ar, sem instalar nada:**
+> [**Abrir a aplicação**](https://suporte-fadex.vercel.app/) ·
+> [**Swagger UI**](https://suporte-fadex-production.up.railway.app/swagger-ui/index.html)
 >
-> O ambiente publicado é **só a API**. A interface das capturas abaixo roda localmente —
-> `docker compose up --build` sobe tudo junto, em um comando.
+> Entre com `ana.souza@fadex.org.br` / `suporte123` (ADMIN). O banco já vem populado pelas
+> migrations, então o painel abre com dados reais.
+>
+> Interface na **Vercel**, API e MySQL no **Railway**. Para rodar tudo na sua máquina,
+> `docker compose up --build` sobe os três em um comando.
 
 ```
 ┌─────────────┐   POST /api/chamados    ┌──────────────┐   TriageProvider   ┌───────────────┐
