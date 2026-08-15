@@ -371,7 +371,7 @@
           }
         },
         {
-          "name": "Alterar status (ADMIN)",
+          "name": "Alterar status",
           "request": {
             "method": "PATCH",
             "header": [
@@ -384,7 +384,7 @@
               "mode": "raw",
               "raw": "{\n  \"status\": \"EM_ANDAMENTO\"\n}"
             },
-            "description": "Fluxo sequencial nos dois sentidos: ABERTO ↔ EM_ANDAMENTO ↔ RESOLVIDO → FECHADO. O retorno para a etapa anterior registra o evento STATUS_RETROCEDIDO no histórico, com o nome de quem moveu. Pular etapas devolve 409, e chamado FECHADO não reabre.",
+            "description": "Fluxo sequencial nos dois sentidos: ABERTO ↔ EM_ANDAMENTO ↔ RESOLVIDO → FECHADO. Um chamado não encerrado também pode ir direto para FECHADO de qualquer etapa. O retorno registra STATUS_RETROCEDIDO no histórico, com o nome de quem moveu.\n\nQuem pode: o ADMIN conduz o fluxo inteiro. O SOLICITANTE tem duas ações, e apenas em um chamado seu que esteja RESOLVIDO — confirmar a resolução (FECHADO) ou informar que o problema continua (EM_ANDAMENTO). Qualquer outra combinação devolve 403.\n\nPular etapas no meio do fluxo devolve 409, e chamado FECHADO não reabre.",
             "url": {
               "raw": "{{baseUrl}}/api/chamados/{{chamadoId}}/status",
               "host": [

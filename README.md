@@ -363,10 +363,32 @@ na heurística local** — a abertura de um chamado nunca falha por indisponibil
 
 > **O fallback é silencioso, por projeto.** Isso protege a abertura do chamado, mas significa que
 > uma IA mal configurada não se anuncia: o chamado abre normalmente, classificado pela heurística.
-> Para saber o que está realmente em uso, dois lugares dizem a verdade — a linha
-> `Triagem automática usando o provider '...'` no log de startup (qual provider foi **escolhido**)
-> e o campo `triagem.provedor` de cada chamado (quem **de fato** classificou). Quando os dois
-> divergem, houve falha e queda para a heurística; o motivo sai no `WARN` do `TriageService`.
+> Para saber o que está realmente em uso, três lugares dizem a verdade — a linha
+> `Triagem automática usando o provider '...'` no log de startup (qual provider foi **escolhido**),
+> o campo `triagem.provedor` de cada chamado (quem **de fato** classificou) e o indicador
+> **Motor da triagem** no dashboard, que agrega os dois no tempo. Quando o provider escolhido não
+> aparece na contagem, houve falha e queda para a heurística; o motivo sai no `WARN` do
+> `TriageService`.
+
+### Automático ≠ IA
+
+São duas perguntas diferentes, e o painel responde as duas separadamente:
+
+| Campo | Valores | Responde |
+|---|---|---|
+| `porOrigem` | `IA` / `MANUAL` | foi classificado sozinho, ou um ADMIN corrigiu na mão? |
+| `porProvedorTriagem` | `heuristic` / `gemini` / … | **qual mecanismo** produziu a sugestão? |
+
+A distinção não é cosmética. `Chamado.aplicarTriagem()` grava origem `IA` em toda classificação
+automática, **inclusive quando quem classificou foi a heurística local** — que não usa modelo
+nenhum. Um painel que só lê `porOrigem` anuncia "93% classificados pela IA" mesmo que nenhuma
+chamada a um modelo tenha acontecido. Por isso o texto do dashboard diz "classificados
+automaticamente", e a contagem por mecanismo aparece ao lado:
+
+```
+93% dos chamados foram classificados automaticamente · 2 ajustados manualmente
+Motor da triagem:  [Heurística local 23 (85%)]  [Gemini 4 (15%)]
+```
 
 **Duas armadilhas de configuração que valem o aviso:**
 
@@ -450,16 +472,42 @@ aos últimos **60 dias**: um chamado de três meses atrás não é duplicata, é
 
 ```
 ABERTO  ⇄  EM_ANDAMENTO  ⇄  RESOLVIDO  →  FECHADO
+   └───────────┴──────────────┴────────────┘
+              encerramento direto
 ```
 
 O chamado anda **uma etapa por vez, nos dois sentidos**. O retorno existe porque "resolvido" é
 uma afirmação que pode se provar falsa: quando o atendimento não resolveu o que foi pedido, o
 chamado volta para `EM_ANDAMENTO` em vez de ser fechado ou reaberto como duplicata.
 
-Duas fronteiras continuam fechadas, e é o que impede o retorno de virar um "desfazer" geral:
+Fora da sequência há **uma única saída**: qualquer chamado não encerrado pode ir direto para
+`FECHADO`. É a válvula de escape da operação — chamado aberto por engano, duplicata já tratada em
+outro registro, solicitação que perdeu o objeto. Obrigar esses casos a percorrer "em andamento" e
+"resolvido" só produziria histórico falso.
+
+Duas fronteiras continuam fechadas, e é o que impede tudo isso de virar um "desfazer" geral:
 
 - **de `FECHADO` não há volta** — seria exatamente a reabertura que a regra proíbe (`409`);
-- **não se pula etapa no retorno** — `RESOLVIDO → ABERTO` é recusado como qualquer outro salto.
+- **não se pula etapa no meio do fluxo** — `ABERTO → RESOLVIDO` e `RESOLVIDO → ABERTO` são
+  recusados igualmente. Fechar é a exceção, e é de ida.
+
+### Quem move o quê
+
+`RESOLVIDO` não é sinônimo de `FECHADO`: é o estado que **aguarda o solicitante**. É ele quem diz
+se o problema acabou, e por isso tem duas ações — e só essas duas, e só no próprio chamado:
+
+| Papel | Pode |
+|---|---|
+| **ADMIN** | todo o fluxo: avançar, retornar e encerrar direto de qualquer etapa |
+| **SOLICITANTE** | no **próprio** chamado em `RESOLVIDO`: confirmar a resolução (`FECHADO`) ou informar que o problema continua (`EM_ANDAMENTO`) |
+
+Qualquer outra combinação devolve `403`. A autorização é **por transição, não por papel puro**, e
+mora no `ChamadoService` — não no controller: um SOLICITANTE que chame a API direto tentando mover
+um chamado de `ABERTO` recebe 403 igual.
+
+> Isso também fecha uma armadilha silenciosa: a regra "quem move para EM_ANDAMENTO sem responsável
+> assume o chamado" só vale para o ADMIN. Sem essa ressalva, o solicitante que reabre o atendimento
+> viraria responsável por ele — e responsável é sempre alguém da equipe de suporte.
 
 ### O log de cada chamado
 
@@ -467,14 +515,18 @@ Toda movimentação vira um evento em `evento_historico`, com **autor, tipo, des
 É esse registro que o detalhe do chamado exibe como timeline, e as duas direções são eventos
 distintos — um retorno não se confunde com mais um avanço na leitura do histórico:
 
-| Direção | Tipo do evento | Descrição registrada |
-|---|---|---|
-| avanço | `STATUS_ALTERADO` | `Ana Souza moveu o chamado para Resolvido` |
-| retorno | `STATUS_RETROCEDIDO` | `Ana Souza retornou o chamado de Resolvido para Em andamento` |
+| Movimento | Tipo do evento | Etiqueta | Descrição registrada |
+|---|---|---|---|
+| avanço | `STATUS_ALTERADO` | — | `Ana Souza moveu o chamado para Resolvido` |
+| retorno | `STATUS_RETROCEDIDO` | `RETORNO` | `Ana Souza retornou o chamado de Resolvido para Em andamento` |
+| encerramento direto | `STATUS_ALTERADO` | `ENCERRAMENTO DIRETO` | `Ana Souza encerrou o chamado direto de Aberto` |
+| solicitante confirma | `STATUS_ALTERADO` | `CONFIRMADO` | `João Pereira confirmou a resolução e encerrou o chamado` |
+| solicitante contesta | `STATUS_RETROCEDIDO` | `RETORNO` | `João Pereira informou que o problema continua; o atendimento foi reaberto` |
 
-O retorno ainda recebe a etiqueta `RETORNO` e cor própria na timeline. O nome de quem moveu entra
-na descrição **e** no campo `autor` do evento: quem audita não depende do texto para saber quem
-fez a mudança.
+O nome de quem moveu entra na descrição **e** no campo `autor` do evento: quem audita não depende
+do texto para saber quem fez a mudança. As etiquetas existem para que os casos que merecem atenção
+— um retorno, um encerramento fora do fluxo — saltem da timeline em vez de se diluírem entre os
+avanços de rotina.
 
 ### O quadro
 
@@ -483,6 +535,17 @@ etapa. Arrastar um cartão chama o mesmo `PATCH /api/chamados/{id}/status` da te
 quadro opera o fluxo, não tem regras próprias. Durante o arraste, só as colunas vizinhas ficam
 ativas: a regra do domínio aparece na interface em vez de ser descoberta por `409`. Cada cartão
 também tem os botões `←` e `→`, porque drag-and-drop nativo não funciona em toque nem por teclado.
+
+Três detalhes de comportamento:
+
+- **O solicitante também vê o quadro**, com os próprios chamados e sem poder arrastar. O recorte
+  não é da tela: vem da mesma listagem que já filtra por solicitante no backend.
+- **Encerrar nunca acontece por arraste.** A coluna `FECHADO` não aceita cartão de qualquer lugar;
+  o encerramento direto é um botão no cartão, com diálogo de confirmação. Fechar não tem volta, e
+  um solte acidental é fácil demais.
+- **Alternador "Sob minha responsabilidade"** para a equipe, que transforma o quadro na fila de
+  quem atende. É filtro de visualização, não papel novo — o "operador" do dia a dia é o ADMIN
+  designado como `responsavel` do chamado.
 
 ---
 
@@ -577,8 +640,10 @@ Todas aplicadas **no backend**, não apenas escondendo botões na interface:
 | E-mail único (verificação + constraint no banco) | `409` |
 | **Chamado FECHADO não pode ser reaberto** | `409` |
 | Fluxo sequencial ABERTO ↔ EM_ANDAMENTO ↔ RESOLVIDO → FECHADO | `409` ao pular etapas, em qualquer direção |
+| Encerramento direto para FECHADO a partir de qualquer etapa não encerrada | permitido; de FECHADO segue `409` |
 | SOLICITANTE não acessa chamado de terceiro | `403` |
-| Só ADMIN altera status, atribui responsável e revisa a IA | `403` |
+| Só ADMIN conduz o fluxo, atribui responsável e revisa a IA | `403` |
+| SOLICITANTE só confirma ou contesta o **próprio** chamado em RESOLVIDO | `403` em qualquer outra transição |
 | Responsável precisa ser da equipe de suporte | `409` |
 | Requisição sem token válido | `401` |
 
@@ -648,6 +713,4 @@ autorização recarrega o usuário a cada requisição: alterar o claim no clien
 ## Documentos do desafio
 
 - [Enunciado oficial (PDF)](docs/Desafio_Analista_Desenvolvimento_Fadex.pdf)
-- [Especificação de implementação](docs/ESPECIFICACAO.md)
-- [Prompt de UI/UX que originou o design](docs/PROMPT-UI-UX.md)
 - [Coleção Postman](docs/central-chamados.postman_collection.json)
