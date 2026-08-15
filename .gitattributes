@@ -1,0 +1,9 @@
+# Normaliza a deteccao de texto e binario entre Windows, Linux e macOS.
+* text=auto
+
+# O Maven Wrapper e um script shell: precisa de LF mesmo quando clonado no
+# Windows, senao o interpretador falha com "bad interpreter: /bin/sh^M".
+mvnw text eol=lf
+
+# O equivalente para o prompt do Windows precisa do oposto.
+mvnw.cmd text eol=crlf
