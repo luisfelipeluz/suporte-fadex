@@ -6,6 +6,14 @@ sistema classifica a solicitação a partir do texto, e a equipe de suporte é n
 
 Solução para o desafio técnico da **FADEX** — vaga de Analista de Desenvolvimento.
 
+> **🚀 API no ar, sem instalar nada:**
+> [**Swagger UI**](https://suporte-fadex-production.up.railway.app/swagger-ui/index.html) ·
+> autentique com `ana.souza@fadex.org.br` / `suporte123` e teste todos os endpoints pelo navegador.
+> O banco já vem populado pelas migrations.
+>
+> O ambiente publicado é **só a API**. A interface das capturas abaixo roda localmente —
+> `docker compose up --build` sobe tudo junto, em um comando.
+
 ```
 ┌─────────────┐   POST /api/chamados    ┌──────────────┐   TriageProvider   ┌───────────────┐
 │  Solicitante│ ──────────────────────► │ ChamadoService│ ─────────────────► │  Heurística   │
@@ -262,8 +270,14 @@ prioridades e as duas origens de classificação — o painel abre populado.
 
 ### Swagger UI
 
-<http://localhost/swagger-ui.html> — autentique em `POST /api/auth/login`, copie o `token`,
-clique em **Authorize**, cole, e todos os endpoints ficam testáveis pelo navegador.
+**No ar, sem instalar nada:**
+<https://suporte-fadex-production.up.railway.app/swagger-ui/index.html>
+
+Localmente: <http://localhost/swagger-ui.html>
+
+Nos dois casos o caminho é o mesmo — autentique em `POST /api/auth/login` com as credenciais
+acima, copie o `token`, clique em **Authorize**, cole, e todos os endpoints ficam testáveis
+pelo navegador.
 
 ### Coleção Postman
 
