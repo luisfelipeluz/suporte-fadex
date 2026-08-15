@@ -245,12 +245,91 @@ class ChamadoControllerTest {
         }
 
         @Test
-        @DisplayName("SOLICITANTE não pode alterar status (403)")
+        @DisplayName("SOLICITANTE não conduz o fluxo do chamado (403)")
         void solicitanteNaoAlteraStatus() throws Exception {
             long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
 
             mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenJoao)
                             .content(json(Map.of("status", "EM_ANDAMENTO"))))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("ADMIN encerra o chamado direto, de qualquer etapa")
+        void adminFechaDireto() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+
+            // De ABERTO, sem passar por em andamento nem resolvido.
+            mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenAdmin)
+                            .content(json(Map.of("status", "FECHADO"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("FECHADO"))
+                    .andExpect(jsonPath("$.encerrado").value(true));
+
+            mockMvc.perform(autenticado(get("/api/chamados/" + id), tokenAdmin))
+                    .andExpect(jsonPath("$.historico[-1:].etiqueta").value("ENCERRAMENTO DIRETO"))
+                    .andExpect(jsonPath("$.historico[-1:].autor").value("Ana Souza"));
+        }
+
+        @Test
+        @DisplayName("chamado encerrado direto continua sem poder reabrir (409)")
+        void fechadoDiretoNaoReabre() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            avancarStatus(id, "FECHADO");
+
+            mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenAdmin)
+                            .content(json(Map.of("status", "EM_ANDAMENTO"))))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.mensagem").value("Chamados fechados não podem ser reabertos."));
+        }
+
+        @Test
+        @DisplayName("SOLICITANTE confirma a resolução do próprio chamado")
+        void solicitanteConfirmaResolucao() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            avancarStatus(id, "EM_ANDAMENTO");
+            avancarStatus(id, "RESOLVIDO");
+
+            mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenJoao)
+                            .content(json(Map.of("status", "FECHADO"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("FECHADO"));
+
+            mockMvc.perform(autenticado(get("/api/chamados/" + id), tokenJoao))
+                    .andExpect(jsonPath("$.historico[-1:].etiqueta").value("CONFIRMADO"))
+                    .andExpect(jsonPath("$.historico[-1:].descricao")
+                            .value("João Pereira confirmou a resolução e encerrou o chamado"));
+        }
+
+        @Test
+        @DisplayName("SOLICITANTE reabre o atendimento quando o problema continua")
+        void solicitanteContestaResolucao() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            avancarStatus(id, "EM_ANDAMENTO");
+            avancarStatus(id, "RESOLVIDO");
+
+            mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenJoao)
+                            .content(json(Map.of("status", "EM_ANDAMENTO"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("EM_ANDAMENTO"))
+                    // O responsavel segue sendo a equipe: quem reabre nao vira dono da tarefa.
+                    .andExpect(jsonPath("$.responsavel.email").value(ADMIN));
+
+            mockMvc.perform(autenticado(get("/api/chamados/" + id), tokenJoao))
+                    .andExpect(jsonPath("$.historico[-1:].tipo").value("STATUS_RETROCEDIDO"))
+                    .andExpect(jsonPath("$.historico[-1:].descricao")
+                            .value("João Pereira informou que o problema continua; o atendimento foi reaberto"));
+        }
+
+        @Test
+        @DisplayName("SOLICITANTE não age no chamado resolvido de outro usuário (403)")
+        void solicitanteNaoAgeEmChamadoAlheio() throws Exception {
+            long id = criar(tokenJoao, TITULO_IMPRESSORA, DESCRICAO_IMPRESSORA);
+            avancarStatus(id, "EM_ANDAMENTO");
+            avancarStatus(id, "RESOLVIDO");
+
+            mockMvc.perform(autenticado(patch("/api/chamados/" + id + "/status"), tokenBeatriz)
+                            .content(json(Map.of("status", "FECHADO"))))
                     .andExpect(status().isForbidden());
         }
 

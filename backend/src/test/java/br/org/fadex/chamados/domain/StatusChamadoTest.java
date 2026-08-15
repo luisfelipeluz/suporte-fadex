@@ -22,10 +22,25 @@ class StatusChamadoTest {
         }
 
         @Test
-        @DisplayName("nao permite pular etapas")
+        @DisplayName("nao permite pular etapas no meio do fluxo")
         void naoPermitePularEtapas() {
             assertThat(StatusChamado.ABERTO.permiteTransicaoPara(StatusChamado.RESOLVIDO)).isFalse();
-            assertThat(StatusChamado.ABERTO.permiteTransicaoPara(StatusChamado.FECHADO)).isFalse();
+        }
+
+        @Test
+        @DisplayName("encerramento direto e permitido de qualquer etapa nao terminal")
+        void fechamentoDiretoDeQualquerEtapa() {
+            assertThat(StatusChamado.ABERTO.permiteTransicaoPara(StatusChamado.FECHADO)).isTrue();
+            assertThat(StatusChamado.EM_ANDAMENTO.permiteTransicaoPara(StatusChamado.FECHADO)).isTrue();
+            assertThat(StatusChamado.RESOLVIDO.permiteTransicaoPara(StatusChamado.FECHADO)).isTrue();
+        }
+
+        @Test
+        @DisplayName("estados terminais nao admitem encerramento direto")
+        void terminaisNaoFecham() {
+            assertThat(StatusChamado.FECHADO.permiteFechamentoDireto()).isFalse();
+            assertThat(StatusChamado.CANCELADO.permiteFechamentoDireto()).isFalse();
+            assertThat(StatusChamado.ABERTO.permiteFechamentoDireto()).isTrue();
         }
 
         @Test

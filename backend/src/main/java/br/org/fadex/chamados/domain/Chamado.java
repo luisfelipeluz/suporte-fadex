@@ -16,6 +16,8 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -193,11 +195,14 @@ public class Chamado {
     }
 
     /**
-     * Move o chamado no fluxo de status, para a frente ou para tras.
+     * Move o chamado no fluxo de status.
      *
-     * <p>Rejeita reabertura de chamado encerrado e qualquer transicao fora da
-     * sequencia ABERTO, EM_ANDAMENTO, RESOLVIDO, FECHADO — inclusive salto de
-     * etapas no retorno.
+     * <p>Aceita o avanco, o retorno para a etapa anterior e o encerramento direto.
+     * Rejeita reabertura de chamado encerrado e salto de etapas no meio do fluxo,
+     * em qualquer direcao.
+     *
+     * <p>Quem pode fazer cada uma dessas transicoes e decisao do servico: aqui
+     * mora apenas o que e valido para o chamado, nao quem tem permissao.
      */
     public void alterarStatus(StatusChamado novoStatus) {
         if (status == StatusChamado.FECHADO) {
@@ -211,17 +216,20 @@ public class Chamado {
                     "O chamado já está com o status " + status.getRotulo().toLowerCase() + ".");
         }
         if (!status.permiteTransicaoPara(novoStatus)) {
-            String avanco = status.proximo().map(StatusChamado::getRotulo).orElse(null);
-            String retorno = status.anterior().map(StatusChamado::getRotulo).orElse(null);
+            List<String> permitidos = new ArrayList<>();
+            status.proximo().map(s -> "avançar para " + s.getRotulo()).ifPresent(permitidos::add);
+            status.anterior().map(s -> "retornar para " + s.getRotulo()).ifPresent(permitidos::add);
 
-            String permitido =
-                    retorno == null
-                            ? "avançar para " + avanco
-                            : "avançar para " + avanco + " ou retornar para " + retorno;
+            // "Avançar para Fechado" ja cobre o encerramento quando FECHADO e o
+            // proximo do fluxo; repetir seria ruido na mensagem.
+            if (status.permiteFechamentoDireto()
+                    && status.proximo().filter(StatusChamado.FECHADO::equals).isEmpty()) {
+                permitidos.add("ser fechado");
+            }
 
             throw new RegraDeNegocioException(
                     "Transição de status inválida: de " + status.getRotulo()
-                            + " o chamado só pode " + permitido + ".");
+                            + " o chamado só pode " + String.join(" ou ", permitidos) + ".");
         }
         this.status = novoStatus;
     }

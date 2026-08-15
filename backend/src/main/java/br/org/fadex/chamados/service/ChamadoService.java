@@ -198,54 +198,126 @@ public class ChamadoService {
     }
 
     /**
-     * Movimentacao de status, para a frente ou de volta. Exclusiva do ADMIN.
+     * Movimentacao de status: avanco, retorno ou encerramento direto.
      *
-     * <p>O historico distingue as duas direcoes e nomeia quem fez a mudanca: um
-     * retorno de RESOLVIDO para EM_ANDAMENTO significa que o atendimento nao
-     * resolveu o problema, e quem precisa auditar isso depois tem de conseguir ver
-     * de onde o chamado voltou e por ordem de quem.
+     * <p>A autorizacao aqui e por transicao, e nao por papel puro. O ADMIN conduz o
+     * fluxo inteiro; o SOLICITANTE tem exatamente duas acoes, e so no proprio
+     * chamado resolvido — confirmar a resolucao ou dizer que o problema continua.
+     * E o que da sentido ao estado RESOLVIDO: ele existe justamente para aguardar
+     * essa resposta antes do encerramento definitivo.
+     *
+     * <p>O historico distingue cada caso e nomeia quem agiu: um retorno de RESOLVIDO
+     * para EM_ANDAMENTO significa que o atendimento nao resolveu o problema, e quem
+     * auditar depois precisa ver de onde o chamado voltou e por ordem de quem.
      */
     @Transactional
-    public ChamadoDetalheResponse alterarStatus(Long id, StatusChamado novoStatus, Usuario admin) {
+    public ChamadoDetalheResponse alterarStatus(Long id, StatusChamado novoStatus, Usuario autor) {
         Chamado chamado = buscar(id);
 
         StatusChamado origem = chamado.getStatus();
+        verificarPermissaoDeStatus(chamado, origem, novoStatus, autor);
+
         boolean retorno = origem.isRetrocessoPara(novoStatus);
 
         chamado.alterarStatus(novoStatus);
 
-        // Ao entrar em andamento sem responsavel definido, quem move assume.
-        if (novoStatus == StatusChamado.EM_ANDAMENTO && chamado.getResponsavel() == null) {
-            chamado.atribuirResponsavel(admin);
+        // Ao entrar em andamento sem responsavel definido, quem move assume. So
+        // vale para o ADMIN: o solicitante que reabre o atendimento nao pode virar
+        // responsavel por ele — responsavel e sempre alguem da equipe de suporte.
+        if (novoStatus == StatusChamado.EM_ANDAMENTO
+                && chamado.getResponsavel() == null
+                && autor.isAdmin()) {
+            chamado.atribuirResponsavel(autor);
             historicoService.registrar(
                     chamado,
-                    admin,
+                    autor,
                     TipoEvento.RESPONSAVEL_ATRIBUIDO,
-                    admin.getNome() + " assumiu o chamado");
+                    autor.getNome() + " assumiu o chamado");
         }
 
-        if (retorno) {
-            historicoService.registrar(
-                    chamado,
-                    admin,
-                    TipoEvento.STATUS_RETROCEDIDO,
-                    admin.getNome()
-                            + " retornou o chamado de "
-                            + origem.getRotulo()
-                            + " para "
-                            + novoStatus.getRotulo(),
-                    "RETORNO");
-        } else {
-            historicoService.registrar(
-                    chamado,
-                    admin,
-                    TipoEvento.STATUS_ALTERADO,
-                    admin.getNome() + " moveu o chamado para " + novoStatus.getRotulo());
-        }
+        registrarMudancaDeStatus(chamado, origem, novoStatus, autor, retorno);
 
         notificar(chamado, false);
 
-        return montarDetalhe(chamado, admin);
+        return montarDetalhe(chamado, autor);
+    }
+
+    /**
+     * Aplica o recorte de quem pode fazer cada transicao.
+     *
+     * <p>Roda antes de {@code chamado.alterarStatus}, para que uma tentativa sem
+     * permissao devolva 403 em vez de 409: o solicitante precisa saber que a
+     * operacao nao e dele, e nao que o fluxo a proibe para todos.
+     */
+    private void verificarPermissaoDeStatus(
+            Chamado chamado, StatusChamado origem, StatusChamado destino, Usuario autor) {
+
+        if (autor.isAdmin()) {
+            return;
+        }
+
+        boolean proprioChamado = chamado.pertenceA(autor);
+        boolean aguardandoValidacao = origem == StatusChamado.RESOLVIDO;
+        boolean confirmaOuContesta =
+                destino == StatusChamado.FECHADO || destino == StatusChamado.EM_ANDAMENTO;
+
+        if (!proprioChamado || !aguardandoValidacao || !confirmaOuContesta) {
+            throw AcessoNegadoException.mudancaDeStatusRestrita();
+        }
+    }
+
+    /** Texto do historico, que muda conforme quem agiu e para onde o chamado foi. */
+    private void registrarMudancaDeStatus(
+            Chamado chamado,
+            StatusChamado origem,
+            StatusChamado destino,
+            Usuario autor,
+            boolean retorno) {
+
+        if (retorno) {
+            boolean contestacao = !autor.isAdmin();
+            historicoService.registrar(
+                    chamado,
+                    autor,
+                    TipoEvento.STATUS_RETROCEDIDO,
+                    contestacao
+                            ? autor.getNome()
+                                    + " informou que o problema continua; o atendimento foi reaberto"
+                            : autor.getNome()
+                                    + " retornou o chamado de "
+                                    + origem.getRotulo()
+                                    + " para "
+                                    + destino.getRotulo(),
+                    "RETORNO");
+            return;
+        }
+
+        // O solicitante fechando o proprio chamado resolvido esta confirmando a
+        // solucao — registrar isso como "moveu para Fechado" perderia o sentido.
+        if (!autor.isAdmin() && destino == StatusChamado.FECHADO) {
+            historicoService.registrar(
+                    chamado,
+                    autor,
+                    TipoEvento.STATUS_ALTERADO,
+                    autor.getNome() + " confirmou a resolução e encerrou o chamado",
+                    "CONFIRMADO");
+            return;
+        }
+
+        boolean encerramentoDireto =
+                destino == StatusChamado.FECHADO
+                        && origem.proximo().filter(StatusChamado.FECHADO::equals).isEmpty();
+
+        historicoService.registrar(
+                chamado,
+                autor,
+                TipoEvento.STATUS_ALTERADO,
+                encerramentoDireto
+                        ? autor.getNome()
+                                + " encerrou o chamado direto de "
+                                + origem.getRotulo()
+                        : autor.getNome() + " moveu o chamado para " + destino.getRotulo(),
+                encerramentoDireto ? "ENCERRAMENTO DIRETO" : null);
     }
 
     /** Atribuicao ou reatribuicao de responsavel. Exclusiva do ADMIN. */

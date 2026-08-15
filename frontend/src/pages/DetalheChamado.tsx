@@ -60,6 +60,7 @@ export function DetalheChamado() {
   const [atribuindo, setAtribuindo] = useState(false);
   const [responsaveis, setResponsaveis] = useState<Usuario[]>([]);
   const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false);
+  const [confirmandoFechamento, setConfirmandoFechamento] = useState(false);
 
   const carregar = useCallback(() => {
     setCarregando(true);
@@ -131,6 +132,19 @@ export function DetalheChamado() {
   const indiceAtual = FLUXO.indexOf(chamado.status);
   const podeGerenciar = admin && !chamado.encerrado;
   const ehSolicitante = chamado.solicitante.id === usuario?.id;
+
+  /**
+   * O solicitante valida o próprio chamado quando o suporte o dá por resolvido:
+   * confirma o encerramento ou diz que o problema continua. É o que separa
+   * RESOLVIDO de FECHADO — um espera resposta, o outro é definitivo.
+   */
+  const podeValidar = !admin && ehSolicitante && chamado.status === 'RESOLVIDO';
+
+  /**
+   * Encerramento direto: só aparece quando fechar não é o próximo passo natural
+   * do fluxo, para não duplicar o botão "Mover para Fechado".
+   */
+  const podeFecharDireto = podeGerenciar && chamado.proximoStatus !== 'FECHADO';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -485,11 +499,68 @@ export function DetalheChamado() {
                       Mover para {ROTULO_STATUS[chamado.proximoStatus]}
                     </button>
                   )}
+
+                  {/* Atalho de encerramento. Passa por confirmação porque fechar
+                      não tem volta: chamado fechado não reabre. */}
+                  {podeFecharDireto && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      disabled={processando}
+                      title="Encerrar o chamado sem passar pelas demais etapas"
+                      onClick={() => setConfirmandoFechamento(true)}
+                      style={{ marginLeft: 'auto' }}
+                    >
+                      Fechar chamado
+                    </button>
+                  )}
                 </div>
               )
             )}
 
-            {!admin && !chamado.encerrado && (
+            {/* Validação pelo solicitante — o que dá sentido próprio ao RESOLVIDO. */}
+            {podeValidar && (
+              <div style={{ marginTop: 14 }}>
+                <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--ink2)' }}>
+                  O suporte marcou este chamado como resolvido. O problema foi resolvido para você?
+                </p>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    disabled={processando}
+                    onClick={() =>
+                      executar(
+                        () => chamados.alterarStatus(chamado.id, 'FECHADO'),
+                        'Resolução confirmada',
+                        `#${chamado.id} · o chamado foi encerrado`,
+                      )
+                    }
+                  >
+                    Confirmar resolução
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    disabled={processando}
+                    title="Devolve o chamado para a equipe de suporte"
+                    onClick={() =>
+                      executar(
+                        () => chamados.alterarStatus(chamado.id, 'EM_ANDAMENTO'),
+                        'Atendimento reaberto',
+                        `#${chamado.id} · o suporte foi avisado`,
+                      )
+                    }
+                  >
+                    Não resolveu
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!admin && !chamado.encerrado && !podeValidar && (
               <p style={{ margin: '14px 0 0', fontSize: 13, color: 'var(--mut)' }}>
                 A mudança de status é feita pela equipe de suporte.
               </p>
@@ -979,6 +1050,26 @@ export function DetalheChamado() {
             await chamados.cancelar(chamado.id);
             setConfirmandoCancelamento(false);
           }, 'Chamado cancelado', `#${chamado.id} · ação registrada no histórico`)
+        }
+      />
+
+      <Modal
+        aberto={confirmandoFechamento}
+        titulo="Fechar o chamado agora?"
+        descricao={
+          `O chamado está em ${ROTULO_STATUS[chamado.status].toLowerCase()} e será encerrado ` +
+          'direto, sem passar pelas demais etapas. Chamado fechado não pode ser reaberto.'
+        }
+        rotuloConfirmar="Fechar chamado"
+        tomConfirmar="danger"
+        processando={processando}
+        aoFechar={() => setConfirmandoFechamento(false)}
+        aoConfirmar={() =>
+          executar(async () => {
+            const atualizado = await chamados.alterarStatus(chamado.id, 'FECHADO');
+            setConfirmandoFechamento(false);
+            return atualizado;
+          }, 'Chamado fechado', `#${chamado.id} · encerramento registrado no histórico`)
         }
       />
 

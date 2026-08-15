@@ -25,6 +25,7 @@ import { dataRelativa, ICONE_STATUS, ROTULO_STATUS } from '../utils/formato';
 import { Avatar, CORES_STATUS, PriorityBadge } from './Badges';
 import { Icone } from './Icone';
 import { EstadoErro } from './Estados';
+import { Modal } from './Modal';
 import { useToasts } from './Toasts';
 
 /** Colunas do quadro. CANCELADO fica fora: não é etapa do fluxo, é saída dele. */
@@ -56,6 +57,17 @@ function anteriorDe(status: StatusChamado): StatusChamado | null {
 }
 
 /**
+ * Encerramento direto, espelhando `StatusChamado.permiteFechamentoDireto()`.
+ *
+ * Vale de qualquer etapa não terminal — é a válvula de escape para chamado
+ * aberto por engano ou que perdeu o objeto. Fica fora do arraste de propósito:
+ * fechar não tem volta, então exige um gesto deliberado.
+ */
+function podeFecharDireto(status: StatusChamado): boolean {
+  return status !== 'FECHADO' && status !== 'CANCELADO';
+}
+
+/**
  * Explica para onde o cartão poderia ir, em vez de apenas recusar o movimento.
  *
  * Só aparece em caminhos que o arraste já bloqueia (toque, solte fora de hora):
@@ -79,7 +91,7 @@ function destinoInvalidoExplicado(
 }
 
 export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: () => void }) {
-  const { admin } = useAuth();
+  const { admin, usuario } = useAuth();
   const { revisao } = useRealtime();
   const { notificar } = useToasts();
   const navegar = useNavigate();
@@ -88,6 +100,16 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
   const [total, setTotal] = useState(0);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<unknown>(null);
+
+  /**
+   * Recorte da equipe: quem atende usa o quadro para ver a própria fila, não a
+   * da central inteira. Filtra no cliente porque os cartões já estão todos em
+   * memória — o quadro carrega tudo de uma vez.
+   */
+  const [somenteMeus, setSomenteMeus] = useState(false);
+
+  /** Cartão aguardando confirmação de encerramento direto. */
+  const [fechando, setFechando] = useState<ChamadoResumo | null>(null);
 
   /** Cartão em arraste; guardado em estado porque o `dataTransfer` não é
    * legível durante o `dragover` — é ele que define qual coluna aceita o solte. */
@@ -136,17 +158,25 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
     };
   }, [aberto, aoFechar]);
 
+  /** Sob responsabilidade de quem está olhando — a fila do atendente. */
+  const meus = useMemo(
+    () => cartoes.filter((c) => c.responsavel?.id === usuario?.id),
+    [cartoes, usuario],
+  );
+
+  const visiveis = somenteMeus ? meus : cartoes;
+
   const porColuna = useMemo(() => {
     const mapa = Object.fromEntries(COLUNAS.map((s) => [s, [] as ChamadoResumo[]])) as Record<
       StatusChamado,
       ChamadoResumo[]
     >;
-    cartoes.forEach((c) => mapa[c.status]?.push(c));
+    visiveis.forEach((c) => mapa[c.status]?.push(c));
     return mapa;
-  }, [cartoes]);
+  }, [visiveis]);
 
-  const cancelados = cartoes.filter((c) => c.status === 'CANCELADO').length;
-  const noQuadro = cartoes.length - cancelados;
+  const cancelados = visiveis.filter((c) => c.status === 'CANCELADO').length;
+  const noQuadro = visiveis.length - cancelados;
 
   /**
    * Move o chamado uma etapa, para a frente ou de volta.
@@ -158,8 +188,11 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
   async function mover(chamado: ChamadoResumo, destino: StatusChamado) {
     const avanco = proximoDe(chamado.status);
     const retorno = anteriorDe(chamado.status);
+    // O encerramento direto não é uma etapa vizinha, e por isso não entra no
+    // arraste: chega aqui pelo botão, depois da confirmação.
+    const encerramento = destino === 'FECHADO' && podeFecharDireto(chamado.status);
 
-    if (destino !== avanco && destino !== retorno) {
+    if (destino !== avanco && destino !== retorno && !encerramento) {
       notificar(
         'Movimentação não permitida',
         destinoInvalidoExplicado(chamado.status, avanco, retorno),
@@ -255,9 +288,48 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
             </p>
           </div>
 
-          <button type="button" className="btn btn-secondary btn-sm" onClick={aoFechar}>
-            Fechar
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* A fila do atendente. Só faz sentido para a equipe: o solicitante
+                nunca é responsável por chamado, e veria um quadro vazio. */}
+            {admin && (
+              <div
+                role="group"
+                aria-label="Recorte do quadro"
+                style={{
+                  display: 'flex',
+                  border: '1px solid var(--bd)',
+                  borderRadius: 'var(--rd)',
+                  overflow: 'hidden',
+                }}
+              >
+                {[
+                  { rotulo: 'Todos', meus: false, quantidade: cartoes.length },
+                  { rotulo: 'Sob minha responsabilidade', meus: true, quantidade: meus.length },
+                ].map((opcao) => (
+                  <button
+                    key={opcao.rotulo}
+                    type="button"
+                    onClick={() => setSomenteMeus(opcao.meus)}
+                    aria-pressed={somenteMeus === opcao.meus}
+                    className="btn btn-sm"
+                    style={{
+                      borderRadius: 0,
+                      border: 'none',
+                      background: somenteMeus === opcao.meus ? 'var(--acl)' : 'transparent',
+                      color: somenteMeus === opcao.meus ? 'var(--acd)' : 'var(--mut)',
+                    }}
+                  >
+                    {opcao.rotulo}
+                    <span style={{ opacity: 0.7 }}>{opcao.quantidade}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <button type="button" className="btn btn-secondary btn-sm" onClick={aoFechar}>
+              Fechar
+            </button>
+          </div>
         </div>
 
         {/* Colunas */}
@@ -469,6 +541,24 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
                                   style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
+                                  {/* Encerrar só aparece quando fechar não é o
+                                      próximo passo — em RESOLVIDO, a seta já faz isso. */}
+                                  {proximo !== 'FECHADO' && podeFecharDireto(c.status) && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-ghost btn-sm"
+                                      title="Encerrar o chamado sem passar pelas demais etapas"
+                                      disabled={movendo === c.id}
+                                      onClick={() => setFechando(c)}
+                                      style={{ padding: '2px 8px' }}
+                                    >
+                                      <Icone nome="check" tamanho={13} traco={2.4} />
+                                      <span className="sr-only">
+                                        Fechar chamado #{c.id} direto
+                                      </span>
+                                    </button>
+                                  )}
+
                                   {anterior && (
                                     <button
                                       type="button"
@@ -538,11 +628,33 @@ export function QuadroKanban({ aberto, aoFechar }: { aberto: boolean; aoFechar: 
 
           <span>
             {admin
-              ? 'Uma etapa por vez, nos dois sentidos. Chamados fechados não reabrem.'
+              ? 'Uma etapa por vez, nos dois sentidos. Encerrar é direto — e não reabre.'
               : 'A movimentação dos chamados é feita pela equipe de suporte.'}
           </span>
         </div>
       </div>
+
+      {/* Fechar não tem volta, então nunca acontece por arraste: só por este
+          caminho, com confirmação. */}
+      <Modal
+        aberto={fechando != null}
+        titulo="Fechar o chamado agora?"
+        descricao={
+          fechando
+            ? `#${fechando.id} está em ${ROTULO_STATUS[fechando.status].toLowerCase()} e será ` +
+              'encerrado direto, sem passar pelas demais etapas. Chamado fechado não pode ser reaberto.'
+            : ''
+        }
+        rotuloConfirmar="Fechar chamado"
+        tomConfirmar="danger"
+        processando={fechando != null && movendo === fechando.id}
+        aoFechar={() => setFechando(null)}
+        aoConfirmar={() => {
+          const alvo = fechando;
+          setFechando(null);
+          if (alvo) mover(alvo, 'FECHADO');
+        }}
+      />
     </div>
   );
 }

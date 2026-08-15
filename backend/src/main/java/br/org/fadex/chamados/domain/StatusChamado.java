@@ -9,6 +9,8 @@ import java.util.Optional;
  *
  * <pre>
  *   ABERTO &lt;-> EM_ANDAMENTO &lt;-> RESOLVIDO -> FECHADO
+ *      |               |              |
+ *      +---------------+--------------+---> FECHADO  (encerramento direto)
  * </pre>
  *
  * <p>O retrocesso existe porque "resolvido" e uma afirmacao que pode se provar
@@ -90,14 +92,35 @@ public enum StatusChamado {
     /**
      * Indica se a transicao deste estado para {@code destino} e valida.
      *
-     * <p>Vale o avanco para a proxima etapa e o retorno para a anterior. O que
-     * continua proibido: saltar etapas, reabrir chamado encerrado e mexer em
-     * chamado cancelado.
+     * <p>Vale o avanco para a proxima etapa, o retorno para a anterior e o
+     * encerramento direto (ver {@link #permiteFechamentoDireto()}). O que continua
+     * proibido: saltar etapas no meio do fluxo, reabrir chamado encerrado e mexer
+     * em chamado cancelado.
      */
     public boolean permiteTransicaoPara(StatusChamado destino) {
-        return destino != null
-                && (proximo().filter(destino::equals).isPresent()
-                        || anterior().filter(destino::equals).isPresent());
+        if (destino == null || isEncerrado()) {
+            return false;
+        }
+        if (destino == FECHADO) {
+            return permiteFechamentoDireto();
+        }
+        return proximo().filter(destino::equals).isPresent()
+                || anterior().filter(destino::equals).isPresent();
+    }
+
+    /**
+     * Indica se o chamado pode ser encerrado direto, sem percorrer as etapas.
+     *
+     * <p>E a valvula de escape da operacao: chamado aberto por engano, duplicata
+     * ja tratada em outro registro, solicitacao que perdeu o objeto. Obrigar essas
+     * situacoes a passar por "em andamento" e "resolvido" so produziria historico
+     * falso.
+     *
+     * <p>Nao ha conflito com a regra de nao reabrir: fechar continua sendo um
+     * caminho de ida, e nenhum estado terminal volta atras.
+     */
+    public boolean permiteFechamentoDireto() {
+        return !isEncerrado();
     }
 
     /**
